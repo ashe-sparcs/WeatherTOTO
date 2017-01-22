@@ -132,111 +132,162 @@
         </div>
         <main class="mdl-layout__content mdl-color--grey-100">
             <div class="mdl-grid" style="padding: 1em 0em 1em 1em;">
-                <table class="mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-data-table--selectable mdl-shadow--2dp">
+                <table class="mdl-cell--12-col mdl-data-table mdl-js-data-table mdl-shadow--2dp">
                     <thead>
                         <tr>
-                            <th class="mdl-data-table__cell--non-numeric">User</th>
                             <th class="mdl-data-table__cell--non-numeric">Region</th>
-                            <th>Money(drop)</th>
-                            <th>Hit Rate(%)</th>
+                            <th class="mdl-data-table__cell--non-numeric">Target Date</th>
+                            <th class="mdl-data-table__cell--non-numeric">Due Date</th>
+                            <th>Rain Money(drop)</th>
+                            <th>Dry Money(drop)</th>
+                            <th class="mdl-data-table__cell--non-numeric">Bet on Rain</th>
+                            <th class="mdl-data-table__cell--non-numeric">Bet on Dry</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Acrylic (Transparent)</td>
                             <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td>$2.90</td>
-                            <td>100%</td>
+                            <td class="mdl-data-table__cell--non-numeric">17.01.24.15:00</td>
+                            <td class="mdl-data-table__cell--non-numeric">17.01.23.15:00</td>
+                            <td>1000</th>
+                                <td>2000</th>
+                                    <td class="mdl-data-table__cell--non-numeric">
+                                        <button id='button-rain' class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
+                                            Rain
+                                        </button>
+                                        <div id="snackbar-rain" class="mdl-js-snackbar mdl-snackbar">
+                                            <div class="mdl-snackbar__text"></div>
+                                            <button class="mdl-snackbar__action" type="button"></button>
+                                        </div>
+                                    </td>
+                                    <td class="mdl-data-table__cell--non-numeric">
+                                        <button id="button-dry" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
+                                            Dry
+                                        </button>
+                                        <div id="snackbar-dry" class="mdl-js-snackbar mdl-snackbar">
+                                            <div class="mdl-snackbar__text"></div>
+                                            <button class="mdl-snackbar__action" type="button"></button>
+                                        </div>
+                                    </td>
                         </tr>
                         <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Plywood (Birch)</td>
                             <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td>$1.25</td>
-                            <td>100%</td>
+                            <td class="mdl-data-table__cell--non-numeric">17.01.24.15:00</td>
+                            <td class="mdl-data-table__cell--non-numeric">17.01.23.15:00</td>
+                            <td>1000</th>
+                                <td>2000</th>
+                                    <td class="mdl-data-table__cell--non-numeric">
+                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
+                                            Rain
+                                        </button>
+                                    </td>
+                                    <td class="mdl-data-table__cell--non-numeric">
+                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
+                                            Dry
+                                        </button>
+                                    </td>
                         </tr>
                         <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Laminate (Gold on Blue)</td>
                             <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td>$2.35</td>
-                            <td>100%</td>
+                            <td class="mdl-data-table__cell--non-numeric">17.01.24.15:00</td>
+                            <td class="mdl-data-table__cell--non-numeric">17.01.23.15:00</td>
+                            <td>1000</th>
+                                <td>2000</th>
+                                    <td class="mdl-data-table__cell--non-numeric">
+                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
+                                            Rain
+                                        </button>
+                                    </td>
+                                    <td class="mdl-data-table__cell--non-numeric">
+                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
+                                            Dry
+                                        </button>
+                                    </td>
                         </tr>
                         <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Laminate (Gold on Blue)</td>
                             <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td>$2.35</td>
-                            <td>100%</td>
+                            <td class="mdl-data-table__cell--non-numeric">17.01.24.15:00</td>
+                            <td class="mdl-data-table__cell--non-numeric">17.01.23.15:00</td>
+                            <td>1000</th>
+                                <td>2000</th>
+                                    <td class="mdl-data-table__cell--non-numeric">
+                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
+                                            Rain
+                                        </button>
+                                    </td>
+                                    <td class="mdl-data-table__cell--non-numeric">
+                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
+                                            Dry
+                                        </button>
+                                    </td>
                         </tr>
                         <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Laminate (Gold on Blue)</td>
                             <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td>$2.35</td>
-                            <td>100%</td>
+                            <td class="mdl-data-table__cell--non-numeric">17.01.24.15:00</td>
+                            <td class="mdl-data-table__cell--non-numeric">17.01.23.15:00</td>
+                            <td>1000</th>
+                                <td>2000</th>
+                                    <td class="mdl-data-table__cell--non-numeric">
+                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
+                                            Rain
+                                        </button>
+                                    </td>
+                                    <td class="mdl-data-table__cell--non-numeric">
+                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
+                                            Dry
+                                        </button>
+                                    </td>
                         </tr>
                         <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Laminate (Gold on Blue)</td>
                             <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td>$2.35</td>
-                            <td>100%</td>
+                            <td class="mdl-data-table__cell--non-numeric">17.01.24.15:00</td>
+                            <td class="mdl-data-table__cell--non-numeric">17.01.23.15:00</td>
+                            <td>1000</th>
+                                <td>2000</th>
+                                    <td class="mdl-data-table__cell--non-numeric">
+                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
+                                            Rain
+                                        </button>
+                                    </td>
+                                    <td class="mdl-data-table__cell--non-numeric">
+                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
+                                            Dry
+                                        </button>
+                                    </td>
                         </tr>
                         <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Laminate (Gold on Blue)</td>
                             <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td>$2.35</td>
-                            <td>100%</td>
+                            <td class="mdl-data-table__cell--non-numeric">17.01.24.15:00</td>
+                            <td class="mdl-data-table__cell--non-numeric">17.01.23.15:00</td>
+                            <td>1000</th>
+                                <td>2000</th>
+                                    <td class="mdl-data-table__cell--non-numeric">
+                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
+                                            Rain
+                                        </button>
+                                    </td>
+                                    <td class="mdl-data-table__cell--non-numeric">
+                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
+                                            Dry
+                                        </button>
+                                    </td>
                         </tr>
                         <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Laminate (Gold on Blue)</td>
                             <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td>$2.35</td>
-                            <td>100%</td>
-                        </tr>
-                        <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Laminate (Gold on Blue)</td>
-                            <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td>$2.35</td>
-                            <td>100%</td>
-                        </tr>
-                        <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Laminate (Gold on Blue)</td>
-                            <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td>$2.35</td>
-                            <td>100%</td>
-                        </tr>
-                        <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Laminate (Gold on Blue)</td>
-                            <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td>$2.35</td>
-                            <td>100%</td>
-                        </tr>
-                        <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Laminate (Gold on Blue)</td>
-                            <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td>$2.35</td>
-                            <td>100%</td>
-                        </tr>
-                        <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Laminate (Gold on Blue)</td>
-                            <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td>$2.35</td>
-                            <td>100%</td>
-                        </tr>
-                        <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Laminate (Gold on Blue)</td>
-                            <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td>$2.35</td>
-                            <td>100%</td>
-                        </tr>
-                        <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Laminate (Gold on Blue)</td>
-                            <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td>$2.35</td>
-                            <td>100%</td>
-                        </tr>
-                        <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Laminate (Gold on Blue)</td>
-                            <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td>$2.35</td>
-                            <td>100%</td>
+                            <td class="mdl-data-table__cell--non-numeric">17.01.24.15:00</td>
+                            <td class="mdl-data-table__cell--non-numeric">17.01.23.15:00</td>
+                            <td>1000</th>
+                                <td>2000</th>
+                                    <td class="mdl-data-table__cell--non-numeric">
+                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
+                                            Rain
+                                        </button>
+                                    </td>
+                                    <td class="mdl-data-table__cell--non-numeric">
+                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
+                                            Dry
+                                        </button>
+                                    </td>
                         </tr>
                     </tbody>
                 </table>
@@ -291,6 +342,31 @@
         </defs>
     </svg>
     <script src="/static/mdl/material.min.js"></script>
+    <script src="/static/js/jquery-3.1.1.min.js"></script>
+    <script>
+        function defineButtonSnackbar(button, snackbar) {
+            'use strict';
+            var snackbarContainer = document.querySelector('#'+snackbar);
+            var showSnackbarButton = document.querySelector('#'+button);
+            var handler = function (event) {
+                showSnackbarButton.style.backgroundColor = '';
+            };
+            showSnackbarButton.addEventListener('click', function () {
+                'use strict';
+                showSnackbarButton.style.backgroundColor = '#' +
+                    Math.floor(Math.random() * 0xFFFFFF).toString(16);
+                var data = {
+                    message: 'You clicked ' + button,
+                    timeout: 2000,
+                    actionHandler: handler,
+                    actionText: 'Undo'
+                };
+                snackbarContainer.MaterialSnackbar.showSnackbar(data);
+            });
+        }
+        defineButtonSnackbar('button-rain', 'snackbar-rain');
+        defineButtonSnackbar('button-dry', 'snackbar-dry');
+    </script>
 </body>
 
 </html>
