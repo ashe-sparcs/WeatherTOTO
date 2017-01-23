@@ -68,7 +68,7 @@
         }
         
         .mdl-tabs__tab-active {
-            border-bottom: 2px;
+            border-bottom: 0.3em;
             border-bottom-color: white;
             border-bottom-style: solid;
         }
@@ -79,7 +79,7 @@
     <div class="demo-layout mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
         <header class="demo-header mdl-layout__header mdl-color--primary mdl-color-text--white">
             <div class="mdl-layout__header-row">
-                <span class="mdl-layout-title">Top Users</span>
+                <span class="mdl-layout-title">Predict</span>
                 <div class="mdl-layout-spacer"></div>
                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
                     <label class="mdl-button mdl-js-button mdl-button--icon" for="search">
@@ -123,11 +123,6 @@
                 <a class="mdl-navigation__link" href=""><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">help</i>Predict</a>
                 <a class="mdl-navigation__link" href=""><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">people</i>Following</a>
                 <a class="mdl-navigation__link" href=""><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">settings</i>Settings</a>
-                <a class="mdl-navigation__link" href=""><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">flag</i>Updates</a>
-                <a class="mdl-navigation__link" href=""><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">local_offer</i>Promos</a>
-                <a class="mdl-navigation__link" href=""><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">shopping_cart</i>Purchases</a>
-                <div class="mdl-layout-spacer"></div>
-                <a class="mdl-navigation__link" href=""><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">help_outline</i><span class="visuallyhidden">Help</span></a>
             </nav>
         </div>
         <main class="mdl-layout__content mdl-color--grey-100">
@@ -152,13 +147,9 @@
                             <td>1000</th>
                                 <td>2000</th>
                                     <td class="mdl-data-table__cell--non-numeric">
-                                        <button id='button-rain' class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
+                                        <button id="button-rain" type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
                                             Rain
                                         </button>
-                                        <div id="snackbar-rain" class="mdl-js-snackbar mdl-snackbar">
-                                            <div class="mdl-snackbar__text"></div>
-                                            <button class="mdl-snackbar__action" type="button"></button>
-                                        </div>
                                     </td>
                                     <td class="mdl-data-table__cell--non-numeric">
                                         <button id="button-dry" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
@@ -341,31 +332,38 @@
             </g>
         </defs>
     </svg>
+    <dialog class="mdl-dialog">
+        <div class="mdl-dialog__content">
+            <form action="#">
+              <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="sample4">
+                <label class="mdl-textfield__label" for="sample4">Money...</label>
+                <span class="mdl-textfield__error">Input is not a number!</span>
+              </div>
+            </form>
+        </div>
+        <div class="mdl-dialog__actions">
+          <button type="button" class="mdl-button close">OK</button>
+        </div>
+    </dialog>
     <script src="/static/mdl/material.min.js"></script>
     <script src="/static/js/jquery-3.1.1.min.js"></script>
     <script>
-        function defineButtonSnackbar(button, snackbar) {
-            'use strict';
-            var snackbarContainer = document.querySelector('#'+snackbar);
-            var showSnackbarButton = document.querySelector('#'+button);
-            var handler = function (event) {
-                showSnackbarButton.style.backgroundColor = '';
-            };
-            showSnackbarButton.addEventListener('click', function () {
-                'use strict';
-                showSnackbarButton.style.backgroundColor = '#' +
-                    Math.floor(Math.random() * 0xFFFFFF).toString(16);
-                var data = {
-                    message: 'You clicked ' + button,
-                    timeout: 2000,
-                    actionHandler: handler,
-                    actionText: 'Undo'
-                };
-                snackbarContainer.MaterialSnackbar.showSnackbar(data);
-            });
+        var dialog = document.querySelector('dialog');
+        var showDialogButtonRain = document.querySelector('#button-rain');
+        var showDialogButtonDry = document.querySelector('#button-dry');
+        if (! dialog.showModal) {
+          dialogPolyfill.registerDialog(dialog);
         }
-        defineButtonSnackbar('button-rain', 'snackbar-rain');
-        defineButtonSnackbar('button-dry', 'snackbar-dry');
+        showDialogButtonRain.addEventListener('click', function() {
+          dialog.showModal();
+        });
+        showDialogButtonDry.addEventListener('click', function() {
+          dialog.showModal();
+        });
+        dialog.querySelector('.close').addEventListener('click', function() {
+          dialog.close();
+        });
     </script>
 </body>
 

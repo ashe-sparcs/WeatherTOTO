@@ -14,5 +14,10 @@ def hourly():
     return render_template('hourly.html')
 
 
+@app.route('/predict/')
+def predict():
+    return render_template('predict.html')
+
+
 if __name__ == '__main__':
     app.run()
