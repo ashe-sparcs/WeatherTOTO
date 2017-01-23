@@ -91,7 +91,7 @@
             <header class="demo-drawer-header">
                 <img src="/static/mdl/images/user.jpg" class="demo-avatar">
                 <div class="demo-avatar-dropdown">
-                  <span>{{ username }}</span>
+                  <span>Hello {{ username }}!</span>
                     <div class="mdl-layout-spacer"></div>
                     <button id="accbtn" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
                         <i class="material-icons" role="presentation">arrow_drop_down</i>
@@ -116,14 +116,14 @@
                 <div class="mdl-cell mdl-cell--7-col mdl-grid mdl-grid--no-spacing">
                     <div class="mdl-cell--12-col mdl-grid mdl-grid mdl-grid--no-spacing mdl-color--orange-400 mdl-shadow--2dp" style="margin-bottom: 1em; padding-left: 2em; padding-right: 2em; padding-bottom: 2em">
                         <div class="mdl-cell mdl-cell--12-col" style="height: 7em">
-                            <h3 style="color: white">Seoul</h3>
+                          <h3 style="color: white">{{city}}</h3>
                         </div>
                         <div class="mdl-cell mdl-grid mdl-grid--no-spacing mdl-cell--12-col" style="height: 7em; margin-bottom: -1em">
                             <div class="mdl-cell mdl-cell--6-col">
-                                <i class="wi wi-day-cloudy" style="color: white; font-size: 6em; line-height: 1.3em"></i>
+                              <i class="wi {{weather}}" style="color: white; font-size: 6em; line-height: 1.3em"></i>
                             </div>
                             <div class="mdl-cell mdl-cell--6-col">
-                                <h2 style="color: white; text-align: right">4°</h2>
+                              <h2 style="color: white; text-align: right">{{temp}}°</h2>
                             </div>
                         </div>
                     </div>

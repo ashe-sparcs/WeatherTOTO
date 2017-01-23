@@ -17,6 +17,22 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 
 session_moum={}
+weather_check={}
+weather_check['맑음']="wi-day-sunny"
+weather_check['구름조금']="wi-day-cloudy-high"
+weather_check['구름많음']="wi-day-cloudy"
+weather_check['구름많고 비']="wi-day-rain"
+weather_check['구름많고 눈']="wi-day-snow"
+weather_check['구름많고 비 또는 눈']="wi-day-rain-mix"
+weather_check['흐림']="wi-cloudy"
+weather_check['흐리고 비']="wi-rain"
+weather_check['흐리고 눈']="wi-snow"
+weather_check['흐리고 비 또는 눈']="wi-rain-mix"
+weather_check['흐리고 낙뢰']="wi-lightning"
+weather_check['뇌우, 비']="wi-thunderstorm"
+weather_check['뇌우, 눈']="wi-storm-showers"
+weather_check['뇌우, 비 또는 눈']="wi-night-sleet-storm"
+
 #Define User & Prediction for SQLite
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -51,19 +67,50 @@ db.create_all()
 
 #Homepage start
 
+@app.route("/")
+def red():
+    return redirect('/home')
+
+def api_call(city):
+    if city=="Seoul":
+        id=108
+    if city=="Daejeon":
+        id=133
+    #url = "http://api.openweathermap.org/data/2.5/weather?q="+city+"&mode=json&appid=e12608ad352a39055355cacc3d6a2b8b"
+    url="http://apis.skplanetx.com/weather/current/minutely?lon=&village=&county=&stnid="+str(id)+"&lat=&city=&version=1"
+    
+    request = urllib.request.Request(url)
+    request.add_header('appKey','be02eb42-18ce-3488-830a-f8334ce8f2a2')
+    response = urllib.request.urlopen(request)
+    rescode = response.getcode()
+    if(rescode==200):
+        data = response.read()
+        return data
+    else:
+        return "Error"
 
 @app.route("/home")
 def home():
     if request.cookies.get('SESSIONID') is None:
-        return render_template('home.html',username=None)
+        return redirect('/login')
     else:
         user = request.cookies.get('SESSIONID')
         try:
             Username = session_moum[user].decode("UTF-8")
-            return render_template('home.html',username=Username)
+            print(Username)
+            data = api_call("Daejeon")
+            if data != "Error":
+                j = json.loads(data.decode('utf-8'))
+                #json city name -> Seoul
+                weather = j['weather']['minutely'][0]['sky']['name']
+                weather = weather_check[weather]
+                city_name = j['weather']['minutely'][0]['station']['name']
+                temp = j['weather']['minutely'][0]['temperature']['tc']
+                return render_template('home.html',username=Username,city=city_name,temp=temp,weather=weather)
+            else:
+                return "Error while api calling"
         except:
-            print("Key Error")
-            print(session_moum)
+            print(sys.exc_info()[0])
             return "Key Error"
     
 
@@ -190,7 +237,6 @@ def login():
     if request.method == 'GET':
         return render_template("login.html")
     else:
-        print('test')
         print(request.form['username'])
         query0 = request.form['username']
         query1 = request.form['password']
