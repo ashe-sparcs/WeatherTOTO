@@ -10,13 +10,16 @@ import datetime
 import json
 import urllib.request
 from flask import redirect,Flask, request, render_template, send_from_directory,make_response
+import traceback
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test12.db'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test12.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ashe.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 
 session_moum={}
+
 weather_check={}
 weather_check['맑음']="wi-day-sunny"
 weather_check['구름조금']="wi-day-cloudy-high"
@@ -32,6 +35,12 @@ weather_check['흐리고 낙뢰']="wi-lightning"
 weather_check['뇌우, 비']="wi-thunderstorm"
 weather_check['뇌우, 눈']="wi-storm-showers"
 weather_check['뇌우, 비 또는 눈']="wi-night-sleet-storm"
+
+city_to_geo = {}
+city_to_geo['서울'] = ('37.566535', '126.97796919999996')
+city_to_geo['대전'] = ('36.3504119', '127.38454750000005')
+city_to_geo['대구'] = ('35.8714354', '128.601445')
+city_to_geo['부산'] = ('35.1795543', '129.07564160000004')
 
 #Define User & Prediction for SQLite
 class User(db.Model):
@@ -71,6 +80,7 @@ db.create_all()
 def red():
     return redirect('/home')
 
+
 def api_call(city):
     if city=="Seoul":
         id=108
@@ -89,6 +99,27 @@ def api_call(city):
     else:
         return "Error"
 
+
+def api_call_dust(city):
+    # url = "http://api.openweathermap.org/data/2.5/weather?q="+city+"&mode=json&appid=e12608ad352a39055355cacc3d6a2b8b"
+    url = 'http://apis.skplanetx.com/weather/dust?version=1&lat='+city_to_geo[city][0]+'&lon='+city_to_geo[city][0]
+
+    request = urllib.request.Request(url)
+    request.add_header('appKey', 'be02eb42-18ce-3488-830a-f8334ce8f2a2')
+    response = urllib.request.urlopen(request)
+    rescode = response.getcode()
+    if (rescode == 200):
+        data = response.read()
+        return data
+    else:
+        return "Error"
+
+
+def feels_like(temp, wind_speed):
+    result = 13.12 + 0.6215*temp - 11.37*pow(wind_speed, 0.16) + 0.3965*temp*pow(wind_speed, 0.16)
+    return round(result, 2)
+
+
 @app.route("/home")
 def home():
     if request.cookies.get('SESSIONID') is None:
@@ -99,18 +130,29 @@ def home():
             Username = session_moum[user].decode("UTF-8")
             print(Username)
             data = api_call("Daejeon")
-            if data != "Error":
+            dust_data = api_call_dust("대전")
+            if data != "Error" and dust_data != "Error":
                 j = json.loads(data.decode('utf-8'))
-                #json city name -> Seoul
+                dust_j = json.loads(dust_data.decode('utf-8'))
+                print('returned json : ')
+                print(dust_j)
+                # json city name -> Seoul
                 weather = j['weather']['minutely'][0]['sky']['name']
                 weather = weather_check[weather]
                 city_name = j['weather']['minutely'][0]['station']['name']
                 temp = j['weather']['minutely'][0]['temperature']['tc']
-                return render_template('home.html',username=Username,city=city_name,temp=temp,weather=weather)
+                wind_speed = j['weather']['minutely'][0]['wind']['wspd']
+                wind_direction = j['weather']['minutely'][0]['wind']['wdir']
+                temp_feels_like = feels_like(float(temp), float(wind_speed))
+                rain_fall = j['weather']['minutely'][0]['precipitation']['sinceOntime']
+                humidity = j['weather']['minutely'][0]['humidity']
+                pressure = j['weather']['minutely'][0]['pressure']['surface']
+                dust = dust_j['weather']['dust'][0]['pm10']['grade']
+                return render_template('home.html',username=Username,city=city_name,temp=temp,weather=weather, feels_like=str(temp_feels_like), rainfall=rain_fall, wind_speed=wind_speed, wind_orientation=wind_direction, humidity=humidity, pressure=pressure, dust=dust)
             else:
                 return "Error while api calling"
         except:
-            print(sys.exc_info()[0])
+            traceback.print_exc()
             return "Key Error"
     
 
@@ -145,7 +187,6 @@ def add_kma():
     db.session.add(user)
     db.session.commit()
     return "Successfully added"
-
 
 
 @app.route("/register", methods=['GET','POST'])
