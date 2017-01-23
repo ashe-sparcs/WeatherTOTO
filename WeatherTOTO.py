@@ -1,5 +1,6 @@
 #From http://flask.pocoo.org/docs/0.12/quickstart/#quickstart
 import os
+import hashlib
 import sys
 import requests
 import urllib.request
@@ -8,13 +9,14 @@ from flask_sqlalchemy import SQLAlchemy
 import datetime
 import json
 import urllib.request
-from flask import Flask, request, render_template, send_from_directory
+from flask import Flask, request, render_template, send_from_directory,make_response
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test11.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test12.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 
+session_moum={}
 #Define User & Prediction for SQLite
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -22,6 +24,10 @@ class User(db.Model):
     pw = db.Column(db.String(80), unique=False)
     predictions = db.relationship('Prediction', backref='User',
                                 lazy='dynamic')
+    #money = db.Column(db.Integer, unique=False)
+    #total = db.Column(db.Integer, unique=False)
+    #win = db.Column(db.Integer, unique=False)
+
     def __init__(self, username, pw):
         self.username = username
         self.pw = pw
@@ -48,6 +54,7 @@ db.create_all()
 #Add gisang-chung
 @app.route("/add_kma")
 def add_kma():
+    global request
     cities = ["Seoul,%20KR","Daejeon,%20KR","Daegu,%20KR","Busan,%20KR"]
     user = User("KMA_Gisangchung","Amazing!")
     
@@ -78,44 +85,62 @@ def add_kma():
     
 
 
-@app.route("/")
-def template_test():
-    return '''Register : <form method=POST name=login action="./connect"> 
-  id : <input type=text name=id>
-  passwd : <input type=passwd name = pw>
-  <input type=submit value=register>'''
+@app.route("/register", methods=['GET','POST'])
+def register():
+    global request
+    if request.method =='GET':
+        return '''Register : <form method=POST name=login action="./register"> 
+        id : <input type=text name=id>
+        passwd : <input type=passwd name = pw>
+        <input type=submit value=register>'''
+    else:
+        #For form
+        #global request
+        query0 = request.form['id']
+        query1 = request.form['pw']
+        #User Already exists?
+        if User.query.filter_by(username=query0).first() is not None:
+            return "User with same username already exists!"
+        else:
+            user = User(query0, query1)
+            db.session.add(user)
+            db.session.commit()
+            return "User %s register completed"%query0
 
-@app.route("/predict")
+@app.route("/predict", methods=['GET','POST'])
 def predict():
-    return '''<form method=POST name=login action="./predict_conn"> 
-  User : <input type=text name = Username>
+    if request.method == 'GET':
+        return '''<form method=POST name=login action="./predict"> 
   Date : <input type=text name = date>
   Weather : <input type=text name = weather>
   Region : <input type=text name = region>
   <input type=submit value=Add>'''
-
-@app.route("/predict_conn", methods=['POST'])
-def predict_conn():
-     #Weather prediction
-    #Input : Date, User, "weather : snow, rain, nothing"
-    
-    """date = '2017-01-24'
-    weather = 'snow'"""
-    date = request.form['date']
-    weather = request.form['weather']
-    Username = request.form['Username']
-    region = request.form['region']
-    predict = Prediction(date,weather,region)
-    
-    #Username = asdf / Assume -> User already exists
-    user = User.query.filter_by(username=Username).first()
-    if user is not None:
-        user.predictions.append(predict)
-        db.session.add(user)
-        db.session.commit()
-        return "Date : %s, Weather : %s, region : %s, Username : %s add Succeed!"%(date,weather,region,Username)
     else:
-        return "Username : %s doesn't exist!"%Username
+    #Weather prediction
+    #Input : Date, User, "weather : snow, rain, nothing"
+        user = request.cookies.get('SESSIONID')
+        try:
+            Username = session_moum[user].decode("UTF-8")
+        except:
+            print("Key Error")
+            print(session_moum)
+            return "Key Error"
+
+        date = request.form['date']
+        weather = request.form['weather']
+        #Username = request.form['Username']
+        region = request.form['region']
+        predict = Prediction(date,weather,region)
+        
+        #Username = asdf / Assume -> User already exists
+        user = User.query.filter_by(username=Username).first()
+        if user is not None:
+            user.predictions.append(predict)
+            db.session.add(user)
+            db.session.commit()
+            return "Date : %s, Weather : %s, region : %s, Username : %s add Succeed!"%(date,weather,region,Username)
+        else:
+            return "Username : %s doesn't exist!"%Username
 
 @app.route("/predict_search")
 def predict_search():
@@ -147,26 +172,27 @@ def predict_list():
         if query[i].weather=='Clear':
             clear+=query[i].user_name+', '
     return rain+snow+nothing+clear+' On date %s, region %s'%(date,region)
-@app.route("/login")
+@app.route("/login", methods=['GET','POST'])
 def login():
-    return "Hello World!"
-
-
-@app.route("/connect", methods=['POST'])
-def connect():
-    #For form
-    global request
-    query0 = request.form['id']
-    query1 = request.form['pw']
-    print(query0) 
-    #User Already exists?
-    if User.query.filter_by(username=query0).first() is not None:
-        return "User with same username already exists!"
+    if request.method == 'GET':
+        return '''Login -> 
+     <form method=POST name=login action="./login"> 
+     ID : <input type=text name = id>
+     PW : <input type=text name = pw>
+     <input type=submit value=Login!>'''
     else:
-        user = User(query0, query1)
-        db.session.add(user)
-        db.session.commit()
-        return "User %s register completed"%query0
+        query0 = request.form['id']
+        query1 = request.form['pw']
+        if User.query.filter_by(username=query0,pw=query1).first() is None:
+            return "Login Fail"
+        else:
+            #Now we give session-cookie -> Flask snipsets
+            query0=query0.encode('utf-8')
+            session_moum[hashlib.md5(query0).hexdigest()]=query0
+            response = make_response("Login Success with %s"%query0)
+            response.set_cookie('SESSIONID',value=hashlib.md5(query0).hexdigest())
+            return response
+
 
 @app.route("/user_list")
 def user_list():
@@ -174,6 +200,7 @@ def user_list():
     user_list_str=''
     for i in range(len(all_users)):
         user_list_str+=all_users[i].username+'\n'
+    print(session_moum)
     return user_list_str
 
 #Homepage finished
