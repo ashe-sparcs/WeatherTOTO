@@ -9,7 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 import datetime
 import json
 import urllib.request
-from flask import Flask, request, render_template, send_from_directory,make_response
+from flask import redirect,Flask, request, render_template, send_from_directory,make_response
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test12.db'
@@ -51,6 +51,22 @@ db.create_all()
 
 #Homepage start
 
+
+@app.route("/home")
+def home():
+    if request.cookies.get('SESSIONID') is None:
+        return render_template('home.html',username=None)
+    else:
+        user = request.cookies.get('SESSIONID')
+        try:
+            Username = session_moum[user].decode("UTF-8")
+            return render_template('home.html',username=Username)
+        except:
+            print("Key Error")
+            print(session_moum)
+            return "Key Error"
+    
+
 #Add gisang-chung
 @app.route("/add_kma")
 def add_kma():
@@ -89,15 +105,12 @@ def add_kma():
 def register():
     global request
     if request.method =='GET':
-        return '''Register : <form method=POST name=login action="./register">
-        id : <input type=text name=id>
-        passwd : <input type=passwd name = pw>
-        <input type=submit value=register>'''
+        return render_template("register.html")
     else:
         #For form
         #global request
-        query0 = request.form['id']
-        query1 = request.form['pw']
+        query0 = request.form['username']
+        query1 = request.form['password']
         #User Already exists?
         if User.query.filter_by(username=query0).first() is not None:
             return "User with same username already exists!"
@@ -175,21 +188,20 @@ def predict_list():
 @app.route("/login", methods=['GET','POST'])
 def login():
     if request.method == 'GET':
-        return '''Login ->
-     <form method=POST name=login action="./login">
-     ID : <input type=text name = id>
-     PW : <input type=text name = pw>
-     <input type=submit value=Login!>'''
+        return render_template("login.html")
     else:
-        query0 = request.form['id']
-        query1 = request.form['pw']
+        print('test')
+        print(request.form['username'])
+        query0 = request.form['username']
+        query1 = request.form['password']
         if User.query.filter_by(username=query0,pw=query1).first() is None:
             return "Login Fail"
         else:
             #Now we give session-cookie -> Flask snipsets
             query0=query0.encode('utf-8')
             session_moum[hashlib.md5(query0).hexdigest()]=query0
-            response = make_response("Login Success with %s"%query0)
+            redirect_to_home = redirect('/home')
+            response = make_response(redirect_to_home)
             response.set_cookie('SESSIONID',value=hashlib.md5(query0).hexdigest())
             return response
 
