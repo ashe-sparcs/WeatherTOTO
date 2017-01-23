@@ -31,7 +31,7 @@ class User(db.Model):
     def __init__(self, username, pw):
         self.username = username
         self.pw = pw
-        return None    
+        return None
     def __repr__(self):
         return '<User %r>' %self.username
 
@@ -57,7 +57,7 @@ def add_kma():
     global request
     cities = ["Seoul,%20KR","Daejeon,%20KR","Daegu,%20KR","Busan,%20KR"]
     user = User("KMA_Gisangchung","Amazing!")
-    
+
     for city in cities:
         url = "http://api.openweathermap.org/data/2.5/forecast?q="+city+"&mode=json&appid=e12608ad352a39055355cacc3d6a2b8b"
         request = urllib.request.Request(url)
@@ -82,14 +82,14 @@ def add_kma():
     db.session.add(user)
     db.session.commit()
     return "Successfully added"
-    
+
 
 
 @app.route("/register", methods=['GET','POST'])
 def register():
     global request
     if request.method =='GET':
-        return '''Register : <form method=POST name=login action="./register"> 
+        return '''Register : <form method=POST name=login action="./register">
         id : <input type=text name=id>
         passwd : <input type=passwd name = pw>
         <input type=submit value=register>'''
@@ -110,7 +110,7 @@ def register():
 @app.route("/predict", methods=['GET','POST'])
 def predict():
     if request.method == 'GET':
-        return '''<form method=POST name=login action="./predict"> 
+        return '''<form method=POST name=login action="./predict">
   Date : <input type=text name = date>
   Weather : <input type=text name = weather>
   Region : <input type=text name = region>
@@ -131,7 +131,7 @@ def predict():
         #Username = request.form['Username']
         region = request.form['region']
         predict = Prediction(date,weather,region)
-        
+
         #Username = asdf / Assume -> User already exists
         user = User.query.filter_by(username=Username).first()
         if user is not None:
@@ -145,7 +145,7 @@ def predict():
 @app.route("/predict_search")
 def predict_search():
      return '''Predict_search. Input ex -> 2017-01-23
-     <form method=POST name=login action="./predict_list"> 
+     <form method=POST name=login action="./predict_list">
   Date : <input type=text name = date>
   Region : <input type=text name = region>
   <input type=submit value=Search>'''
@@ -175,8 +175,8 @@ def predict_list():
 @app.route("/login", methods=['GET','POST'])
 def login():
     if request.method == 'GET':
-        return '''Login -> 
-     <form method=POST name=login action="./login"> 
+        return '''Login ->
+     <form method=POST name=login action="./login">
      ID : <input type=text name = id>
      PW : <input type=text name = pw>
      <input type=submit value=Login!>'''
