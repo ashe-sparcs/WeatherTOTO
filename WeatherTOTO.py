@@ -364,8 +364,7 @@ def home(region):
             else:
                 return "Error while api calling"
         except:
-            traceback.print_exc()
-            return "Key Error"
+			return redirect('/login')
 
 
 @app.route('/my')
