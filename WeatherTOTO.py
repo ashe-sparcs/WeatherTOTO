@@ -11,12 +11,17 @@ import json
 import urllib.request
 from flask import redirect,Flask, request, render_template, send_from_directory,make_response
 from decimal import Decimal
+import traceback
+
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test12.db'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test12.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ashe.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 
 session_moum={}
+
 weather_check={}
 weather_check['맑음']="wi-day-sunny"
 weather_check['구름조금']="wi-day-cloudy-high"
@@ -32,6 +37,12 @@ weather_check['흐리고 낙뢰']="wi-lightning"
 weather_check['뇌우, 비']="wi-thunderstorm"
 weather_check['뇌우, 눈']="wi-storm-showers"
 weather_check['뇌우, 비 또는 눈']="wi-night-sleet-storm"
+
+city_to_geo = {}
+city_to_geo['서울'] = ('37.566535', '126.97796919999996')
+city_to_geo['대전'] = ('36.3504119', '127.38454750000005')
+city_to_geo['대구'] = ('35.8714354', '128.601445')
+city_to_geo['부산'] = ('35.1795543', '129.07564160000004')
 
 #Define User & Prediction for SQLite
 class User(db.Model):
@@ -114,10 +125,9 @@ def logout():
     response.set_cookie('SESSIONID','')
     return response
 
-
 @app.route("/home", defaults={'region': 'Seoul'})
 @app.route("/home/<region>")
-def home(region):
+def home():
     if request.cookies.get('SESSIONID') is None:
         return redirect('/login')
     else:
@@ -162,7 +172,7 @@ def home(region):
             else:
                 return "Error while api calling"
         except:
-            print(sys.exc_info()[0])
+            traceback.print_exc()
             return "Key Error"
     
 
@@ -197,7 +207,6 @@ def add_kma():
     db.session.add(user)
     db.session.commit()
     return "Successfully added"
-
 
 
 @app.route("/register", methods=['GET','POST'])
