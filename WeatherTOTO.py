@@ -364,7 +364,7 @@ def home(region):
             else:
                 return "Error while api calling"
         except:
-			return redirect('/login')
+            return redirect('/login')
 
 
 @app.route('/my')
