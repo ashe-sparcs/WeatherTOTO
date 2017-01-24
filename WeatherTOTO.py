@@ -12,7 +12,7 @@ import urllib.request
 from flask import redirect,Flask, request, render_template, send_from_directory,make_response
 from decimal import Decimal
 import traceback
-
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test12.db'
@@ -26,23 +26,49 @@ weather_check={}
 weather_check['맑음']="wi-day-sunny"
 weather_check['구름조금']="wi-day-cloudy-high"
 weather_check['구름많음']="wi-day-cloudy"
+weather_check['차차 흐려짐']="wi-day-cloudy"
 weather_check['구름많고 비']="wi-day-rain"
+weather_check['비 후 갬']="wi-day-rain"
 weather_check['구름많고 눈']="wi-day-snow"
+weather_check['눈 후 갬']="wi-day-snow"
 weather_check['구름많고 비 또는 눈']="wi-day-rain-mix"
+weather_check['구름많고 비/눈']="wi-day-rain-mix"
+weather_check['눈비 후 갬']="wi-day-rain-mix"
 weather_check['흐림']="wi-cloudy"
 weather_check['흐리고 비']="wi-rain"
+weather_check['흐려져 비']="wi-rain"
 weather_check['흐리고 눈']="wi-snow"
+weather_check['흐려져 눈']="wi-rain"
 weather_check['흐리고 비 또는 눈']="wi-rain-mix"
+weather_check['흐리고 비/눈']="wi-rain-mix"
+weather_check['흐려져 눈비']="wi-rain-mix"
+weather_check['눈비']="wi-rain-mix"
 weather_check['흐리고 낙뢰']="wi-lightning"
 weather_check['뇌우, 비']="wi-thunderstorm"
 weather_check['뇌우, 눈']="wi-storm-showers"
 weather_check['뇌우, 비 또는 눈']="wi-night-sleet-storm"
+weather_check['뇌우, 비/눈']="wi-night-sleet-storm"
 
 city_to_geo = {}
 city_to_geo['서울'] = ('37.566535', '126.97796919999996')
+city_to_geo['Seoul'] = ('37.566535', '126.97796919999996')
 city_to_geo['대전'] = ('36.3504119', '127.38454750000005')
+city_to_geo['Daejeon'] = ('36.3504119', '127.38454750000005')
 city_to_geo['대구'] = ('35.8714354', '128.601445')
+city_to_geo['Daegu'] = ('35.8714354', '128.601445')
 city_to_geo['부산'] = ('35.1795543', '129.07564160000004')
+city_to_geo['Busan'] = ('35.1795543', '129.07564160000004')
+
+dow_kor_eng = {}
+dow_kor_eng['월'] = 'Monday'
+dow_kor_eng['화'] = 'Tuesday'
+dow_kor_eng['수'] = 'Wednesday'
+dow_kor_eng['목'] = 'Thursday'
+dow_kor_eng['금'] = 'Friday'
+dow_kor_eng['토'] = 'Saturday'
+dow_kor_eng['일'] = 'Sunday'
+
+dow_list_glob = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 #Define User & Prediction for SQLite
 class User(db.Model):
@@ -112,7 +138,7 @@ def api_call(num, city):
     request.add_header('appKey','be02eb42-18ce-3488-830a-f8334ce8f2a2')
     response = urllib.request.urlopen(request)
     rescode = response.getcode()
-    if(rescode==200):
+    if rescode==200:
         data = response.read()
         return data
     else:
@@ -228,6 +254,7 @@ def register():
             db.session.commit()
             return "User %s register completed"%query0
 
+
 @app.route("/predict", methods=['GET','POST'])
 def predict():
     if request.method == 'GET':
@@ -263,6 +290,7 @@ def predict():
         else:
             return "Username : %s doesn't exist!"%Username
 
+
 @app.route("/predict_search")
 def predict_search():
      return '''Predict_search. Input ex -> 2017-01-23
@@ -270,6 +298,7 @@ def predict_search():
   Date : <input type=text name = date>
   Region : <input type=text name = region>
   <input type=submit value=Search>'''
+
 
 @app.route("/predict_list", methods=['POST','GET'])
 def predict_list():
@@ -293,6 +322,8 @@ def predict_list():
         if query[i].weather=='Clear':
             clear+=query[i].user_name+', '
     return rain+snow+nothing+clear+' On date %s, region %s'%(date,region)
+
+
 @app.route("/login", methods=['GET','POST'])
 def login():
     if request.method == 'GET':

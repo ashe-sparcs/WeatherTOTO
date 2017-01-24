@@ -129,42 +129,14 @@
                     </div>
                     <div class="mdl-card mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid" style="height: 1em; margin-bottom: 1em;">
                         <!-- 오늘의 다음날부터 요일별 날씨를 적어서 6개이다. -->
-                        <div class="mdl-cell mdl-cell--2-col" style="text-align: center">
-                            <p style="line-height: 3em">Mon</p>
-                            <p><i class="wi wi-day-cloudy" style="font-size: 2.7em"></i></p>
-                            <p style="line-height: 0.2em">4°</p>
-                            <p style="line-height: 0.2em; color: grey">-1°</p>
-                        </div>
-                        <div class="mdl-cell mdl-cell--2-col" style="text-align: center">
-                            <p style="line-height: 3em">Tue</p>
-                            <p><i class="wi wi-day-cloudy" style="font-size: 2.7em"></i></p>
-                            <p style="line-height: 0.2em">4°</p>
-                            <p style="line-height: 0.2em; color: grey">-1°</p>
-                        </div>
-                        <div class="mdl-cell mdl-cell--2-col" style="text-align: center">
-                            <p style="line-height: 3em">Wed</p>
-                            <p><i class="wi wi-day-cloudy" style="font-size: 2.7em"></i></p>
-                            <p style="line-height: 0.2em">4°</p>
-                            <p style="line-height: 0.2em; color: grey">-1°</p>
-                        </div>
-                        <div class="mdl-cell mdl-cell--2-col" style="text-align: center">
-                            <p style="line-height: 3em">Thur</p>
-                            <p><i class="wi wi-day-cloudy" style="font-size: 2.7em"></i></p>
-                            <p style="line-height: 0.2em">4°</p>
-                            <p style="line-height: 0.2em; color: grey">-1°</p>
-                        </div>
-                        <div class="mdl-cell mdl-cell--2-col" style="text-align: center">
-                            <p style="line-height: 3em">Fri</p>
-                            <p><i class="wi wi-day-cloudy" style="font-size: 2.7em"></i></p>
-                            <p style="line-height: 0.2em">4°</p>
-                            <p style="line-height: 0.2em; color: grey">-1°</p>
-                        </div>
-                        <div class="mdl-cell mdl-cell--2-col" style="text-align: center">
-                            <p style="line-height: 3em">Sat</p>
-                            <p><i class="wi wi-day-cloudy" style="font-size: 2.7em"></i></p>
-                            <p style="line-height: 0.2em">4°</p>
-                            <p style="line-height: 0.2em; color: grey">-1°</p>
-                        </div>
+                        {% for forecast in week_forcast_list %}
+                            <div class="mdl-cell mdl-cell--2-col" style="text-align: center">
+                                <p style="line-height: 3em">{{ forecast.dow }}</p>
+                                <p><i class="wi {{ forecast.weather }}" style="font-size: 2.7em"></i></p>
+                                <p style="line-height: 0.2em">{{ forecast.max_temp }}°</p>
+                                <p style="line-height: 0.2em; color: grey">{{ forecast.min_temp }}°</p>
+                            </div>
+                        {% endfor %}
                     </div>
                     <div class="mdl-card mdl-cell mdl-cell--12-col mdl-shadow--2dp">
                     <div class="mdl-card__title">
