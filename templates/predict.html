@@ -144,16 +144,16 @@
                         {% for i in range(8) %}
                         {% set target_time = target_time_list[i] %}
                         {% set due_time = due_time_list[i] %}
-                        {% set rain_money = bet_on_rain_list[i] %}
-                        {% set dry_money = bet_on_dry_list[i] %}
+                        {# {% set rain_money = bet_on_rain_list[i] %} #}
+                        {# {% set dry_money = bet_on_dry_list[i] %} #}
                         {% if target_time.complete not in already %}
                         <tr>
 
                             <td class="mdl-data-table__cell--non-numeric">{{ region }}</td>
                             <td class="mdl-data-table__cell--non-numeric">{{ target_time.year }}.{{ target_time.month }}.{{ target_time.day }}.{{ target_time.hour }}:{{ target_time.minute }}</td>
                             <td class="mdl-data-table__cell--non-numeric">{{ due_time.year }}.{{ due_time.month }}.{{ due_time.day }}.{{ due_time.hour }}:{{ due_time.minute }}</td>
-                            <td>{{ rain_money }}</td>
-                            <td>{{ dry_money }}</td>
+                            <td>100{# {{ rain_money }} #}</td>
+                            <td>200{# {{ dry_money }} #}</td>
                             <td class="mdl-data-table__cell--non-numeric">
                                 <button id="rain-{{ target_time.year }}{{ target_time.month }}{{ target_time.day }}{{ target_time.hour }}{{ target_time.minute }}" type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button" onclick="betOnRain('{{ username }}', '{{ region }}', {{ target_time }}, {{ due_time }});">
                                     Rain
@@ -317,6 +317,9 @@
                 dialog.close();
             });
         }
+        setTimeout(function(){
+           window.location.reload(1);
+        }, 5000);
 
     </script>
 </body>
