@@ -408,12 +408,14 @@ def toto(region):
         dt_json = datetime_to_json(dt)
         target_time_list.append(dt_json)
         due_time_list.append(datetime_to_json(dt - datetime.timedelta(hours=3)))
-        bet_on_rain = [int(p.money) for p in Prediction.query.filter_by(date=dt_json['complete'], weather='rain').all()]
+        print('rain money')
+        print([p.bet_money for p in Prediction.query.filter_by(date=dt_json['complete'], weather='rain').all()])
+        bet_on_rain = [int(p.bet_money) for p in Prediction.query.filter_by(date=dt_json['complete'], weather='rain').all()]
         bet_on_rain_list.append(sum(bet_on_rain))
-        bet_on_dry = [int(p.money) for p in Prediction.query.filter_by(dt_json['complete'], weather='dry').all()]
-        bet_on_dry_list.append(sum(bet_on_rain))
+        bet_on_dry = [int(p.bet_money) for p in Prediction.query.filter_by(date=dt_json['complete'], weather='dry').all()]
+        bet_on_dry_list.append(sum(bet_on_dry))
 
-    already = [prediction.date for prediction in Prediction.query.filter_by(user_name='json').all()]
+    already = [prediction.date for prediction in Prediction.query.filter_by(user_name=Username).all()]
 
 
     return render_template('predict.html', region=region, target_time_list=target_time_list, due_time_list=due_time_list, username=Username, already=already, bet_on_rain_list=bet_on_rain_list, bet_on_dry_list=bet_on_dry_list)
@@ -429,14 +431,25 @@ def toto_fast(region):
 
     target_time_list = []
     due_time_list = []
+    bet_on_rain_list = []
+    bet_on_dry_list = []
     for i in range(8):
         dt = start_time + datetime.timedelta(minutes=i)
-        target_time_list.append(datetime_to_json(dt))
+        dt_json = datetime_to_json(dt)
+        target_time_list.append(dt_json)
         due_time_list.append(datetime_to_json(dt - datetime.timedelta(minutes=1)))
+        print('rain money')
+        print([p.bet_money for p in Prediction.query.filter_by(date=dt_json['complete'], weather='rain').all()])
+        bet_on_rain = [int(p.bet_money) for p in
+                       Prediction.query.filter_by(date=dt_json['complete'], weather='rain').all()]
+        bet_on_rain_list.append(sum(bet_on_rain))
+        bet_on_dry = [int(p.bet_money) for p in
+                      Prediction.query.filter_by(date=dt_json['complete'], weather='dry').all()]
+        bet_on_dry_list.append(sum(bet_on_dry))
 
-    already = [prediction.date for prediction in Prediction.query.filter_by(user_name='json').all()]
+    already = [prediction.date for prediction in Prediction.query.filter_by(user_name=Username).all()]
 
-    return render_template('predict.html', region=region, target_time_list=target_time_list, due_time_list=due_time_list, username=Username, already=already)
+    return render_template('predict.html', region=region, target_time_list=target_time_list, due_time_list=due_time_list, username=Username, already=already, bet_on_rain_list=bet_on_rain_list, bet_on_dry_list=bet_on_dry_list)
 
 
 def round_time(dt=None, round_to=60):
@@ -481,9 +494,10 @@ def add_toto():
         date += date_json['month']+'.'
         date += date_json['day']+'.'
         date += date_json['hour']+':'+date_json['minute']
-        predict = Prediction(date=date, weather=request.json['weather'], region=request.json['region'])
         user = User.query.filter_by(username=Username).first()
         if user is not None:
+            predict = Prediction(date=date, weather=request.json['weather'], region=request.json['region'], bet_money=request.json['money'])
+            user.total_money -= int(request.json['money'])
             user.predictions.append(predict)
             db.session.add(user)
             db.session.commit()
