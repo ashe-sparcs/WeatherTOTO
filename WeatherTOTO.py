@@ -140,7 +140,8 @@ def datetime_to_str(dt):
     string = result['year'] + '.' + result['month'] + '.' + result['day'] + '.' + result['hour'] + ':' + result['minute']
     return string
 
-@cron.interval_schedule(minutes=2)
+
+@cron.interval_schedule(hours=6)
 def job_function():
     #print(datetime.datetime.utcnow())
     time_str=datetime.datetime.now(pytz.timezone('Asia/Seoul'))
@@ -191,8 +192,9 @@ def job_function():
             #print(predict.bet_money)
     print("Finish Cron")
 
-cron.add_cron_job(job_function, minute='0-59')
+#cron.add_cron_job(job_function, minute='0-59')
 atexit.register(lambda: cron.shutdown(wait=False))
+
 
 def get_week_forecast():
     url = "https://www.weatheri.co.kr/forecast/forecast04.php"
@@ -252,7 +254,7 @@ def parse_week_forecast(city, html):
 
     # 내일 날씨 추가####################################################
     request_tomorrow = urllib.request.Request('http://apis.skplanetx.com/weather/forecast/3days?version=1&lat='+city_to_geo[city][0]+'&lon='+city_to_geo[city][0])
-    request_tomorrow.add_header('appKey', 'be02eb42-18ce-3488-830a-f8334ce8f2a2')
+    request_tomorrow.add_header('appKey', '3592fc77-8776-3276-a914-06b06cddcd3f')
     tomorrow_json = json.loads(urllib.request.urlopen(request_tomorrow).read().decode('utf-8'))
     result_json_list.insert(0, {'dow': dow_list_glob[dow_list_glob.index(dow_list[0])-1][:3], 'weather': weather_check[tomorrow_json['weather']['forecast3days'][0]['fcst3hour']['sky']['name22hour']], 'max_temp': tomorrow_json['weather']['forecast3days'][0]['fcstdaily']['temperature']['tmax2day'][:-3], 'min_temp': tomorrow_json['weather']['forecast3days'][0]['fcstdaily']['temperature']['tmin2day'][:-3]})
     return result_json_list
@@ -262,6 +264,7 @@ def parse_week_forecast(city, html):
 @app.route("/")
 def red():
     return redirect('/home')
+
 
 def api_call(num, city):
     if city=="Seoul":
@@ -290,7 +293,7 @@ def api_call(num, city):
     if num==4:
         url="http://api.openweathermap.org/data/2.5/weather?q="+city+"&mode=json&appid=e12608ad352a39055355cacc3d6a2b8b"
     request = urllib.request.Request(url)
-    request.add_header('appKey','be02eb42-18ce-3488-830a-f8334ce8f2a2')
+    request.add_header('appKey','3592fc77-8776-3276-a914-06b06cddcd3f')
     response = urllib.request.urlopen(request)
     rescode = response.getcode()
     if rescode==200:
@@ -317,6 +320,7 @@ def home(region):
         user = request.cookies.get('SESSIONID')
         try:
             Username = session_moum[user].decode("UTF-8")
+            user_obj = User.query.filter_by(username=Username).first()
             week_forcast_list = parse_week_forecast(region, get_week_forecast())
             if region==None:
                 region="Seoul"
@@ -351,12 +355,23 @@ def home(region):
                 for i in [4,7,10,13,16,19,22,25,28]:
                     rain_list.append(int(Decimal(j_rain['weather']['forecast3days'][0]['fcst3hour']['precipitation']['prob'+str(i)+'hour'])))
                 dust = j_dust['weather']['dust'][0]['pm10']['grade']
-                return render_template('home.html', region=region, feel=feel, precipitation=precip,wind_deg=wind_deg,wind_speed=wind_speed,humidity=humidity,pressure=pressure,username=Username,city=city_name,temp=temp,weather=weather,rain_op=rain_list,dust=dust, week_forcast_list=week_forcast_list[:6])
+                return render_template('home.html', region=region, feel=feel, precipitation=precip,wind_deg=wind_deg,wind_speed=wind_speed,humidity=humidity,pressure=pressure,username=Username,city=city_name,temp=temp,weather=weather,rain_op=rain_list,dust=dust, week_forcast_list=week_forcast_list[:6], user_money=user_obj.total_money)
             else:
                 return "Error while api calling"
         except:
             traceback.print_exc()
             return "Key Error"
+
+
+@app.route('/my')
+def my():
+    user = request.cookies.get('SESSIONID')
+    Username = session_moum[user].decode("UTF-8")
+    user_obj = User.query.filter_by(username=Username).first()
+    prediction_list = Prediction.query.filter_by(user_name=Username).order_by(Prediction.date)
+    print('prediction list')
+    print([p.user_name for p in prediction_list])
+    return render_template('my.html', prediction_list=prediction_list, user_money = user_obj.total_money)
     
 
 @app.route("/hourly", defaults={'region': 'Seoul'})
@@ -368,6 +383,7 @@ def hourly(region):
         user = request.cookies.get('SESSIONID')
         try:
             Username = session_moum[user].decode("UTF-8")
+            user_obj = User.query.filter_by(username=Username).first()
         except:
             traceback.print_exc()
             return "Key Error. Call Admin"
@@ -384,7 +400,7 @@ def hourly(region):
             h_list.append(float(j['weather']['forecast3days'][0]['fcst3hour']['humidity']['rh'+str(i)+'hour']))
             r_list.append(float(j['weather']['forecast3days'][0]['fcst3hour']['precipitation']['prob'+str(i)+'hour']))
 
-    return render_template("hourly.html",region=region,username=Username,speed_list=s_list,temp_list=t_list,humidity_list=h_list,rain_list=r_list)
+    return render_template("hourly.html",region=region,username=Username,speed_list=s_list,temp_list=t_list,humidity_list=h_list,rain_list=r_list, user_money = user_obj.total_money)
 
 
 
@@ -396,6 +412,7 @@ def hourly(region):
 def toto(region):
     user = request.cookies.get('SESSIONID')
     Username = session_moum[user].decode("UTF-8")
+    user_obj = User.query.filter_by(username=Username).first()
     current_time = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
     start_time = round_time(current_time, round_to=3*60*60) + datetime.timedelta(hours=6)
 
@@ -418,7 +435,7 @@ def toto(region):
     already = [prediction.date for prediction in Prediction.query.filter_by(user_name=Username).all()]
 
 
-    return render_template('predict.html', region=region, target_time_list=target_time_list, due_time_list=due_time_list, username=Username, already=already, bet_on_rain_list=bet_on_rain_list, bet_on_dry_list=bet_on_dry_list)
+    return render_template('predict.html', region=region, target_time_list=target_time_list, due_time_list=due_time_list, username=Username, already=already, bet_on_rain_list=bet_on_rain_list, bet_on_dry_list=bet_on_dry_list, user_money = user_obj.total_money)
 
 
 @app.route("/toto_fast", defaults={'region': 'Seoul'})
@@ -426,6 +443,7 @@ def toto(region):
 def toto_fast(region):
     user = request.cookies.get('SESSIONID')
     Username = session_moum[user].decode("UTF-8")
+    user_obj = User.query.filter_by(username=Username).first()
     current_time = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
     start_time = round_time(current_time, round_to=60) + datetime.timedelta(minutes=2)
 
@@ -449,7 +467,7 @@ def toto_fast(region):
 
     already = [prediction.date for prediction in Prediction.query.filter_by(user_name=Username).all()]
 
-    return render_template('predict.html', region=region, target_time_list=target_time_list, due_time_list=due_time_list, username=Username, already=already, bet_on_rain_list=bet_on_rain_list, bet_on_dry_list=bet_on_dry_list)
+    return render_template('predict.html', region=region, target_time_list=target_time_list, due_time_list=due_time_list, username=Username, already=already, bet_on_rain_list=bet_on_rain_list, bet_on_dry_list=bet_on_dry_list, user_money=user_obj.total_money)
 
 
 def round_time(dt=None, round_to=60):
