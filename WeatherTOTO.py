@@ -11,6 +11,7 @@ import json
 import urllib.request
 from flask import redirect,Flask, request, render_template, send_from_directory,make_response
 import traceback
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test12.db'
@@ -27,20 +28,38 @@ weather_check['구름많음']="wi-day-cloudy"
 weather_check['구름많고 비']="wi-day-rain"
 weather_check['구름많고 눈']="wi-day-snow"
 weather_check['구름많고 비 또는 눈']="wi-day-rain-mix"
+weather_check['구름많고 비/눈']="wi-day-rain-mix"
 weather_check['흐림']="wi-cloudy"
 weather_check['흐리고 비']="wi-rain"
 weather_check['흐리고 눈']="wi-snow"
 weather_check['흐리고 비 또는 눈']="wi-rain-mix"
+weather_check['흐리고 비/눈']="wi-rain-mix"
 weather_check['흐리고 낙뢰']="wi-lightning"
 weather_check['뇌우, 비']="wi-thunderstorm"
 weather_check['뇌우, 눈']="wi-storm-showers"
 weather_check['뇌우, 비 또는 눈']="wi-night-sleet-storm"
+weather_check['뇌우, 비/눈']="wi-night-sleet-storm"
 
 city_to_geo = {}
 city_to_geo['서울'] = ('37.566535', '126.97796919999996')
+city_to_geo['Seoul'] = ('37.566535', '126.97796919999996')
 city_to_geo['대전'] = ('36.3504119', '127.38454750000005')
+city_to_geo['Daejeon'] = ('36.3504119', '127.38454750000005')
 city_to_geo['대구'] = ('35.8714354', '128.601445')
+city_to_geo['Daegu'] = ('35.8714354', '128.601445')
 city_to_geo['부산'] = ('35.1795543', '129.07564160000004')
+city_to_geo['Busan'] = ('35.1795543', '129.07564160000004')
+
+dow_kor_eng = {}
+dow_kor_eng['월'] = 'Monday'
+dow_kor_eng['화'] = 'Tuesday'
+dow_kor_eng['수'] = 'Wednesday'
+dow_kor_eng['목'] = 'Thursday'
+dow_kor_eng['금'] = 'Friday'
+dow_kor_eng['토'] = 'Saturday'
+dow_kor_eng['일'] = 'Sunday'
+
+dow_list_glob = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 #Define User & Prediction for SQLite
 class User(db.Model):
@@ -93,7 +112,7 @@ def api_call(city):
     request.add_header('appKey','be02eb42-18ce-3488-830a-f8334ce8f2a2')
     response = urllib.request.urlopen(request)
     rescode = response.getcode()
-    if(rescode==200):
+    if rescode==200:
         data = response.read()
         return data
     else:
@@ -108,11 +127,81 @@ def api_call_dust(city):
     request.add_header('appKey', 'be02eb42-18ce-3488-830a-f8334ce8f2a2')
     response = urllib.request.urlopen(request)
     rescode = response.getcode()
-    if (rescode == 200):
+    if rescode == 200:
         data = response.read()
         return data
     else:
         return "Error"
+
+
+def get_week_forecast():
+    url = "https://www.weatheri.co.kr/forecast/forecast04.php"
+
+    request_weather_i = urllib.request.Request(url)
+    response = urllib.request.urlopen(request_weather_i)
+    rescode = response.getcode()
+    if rescode == 200:
+        html = response.read()
+        return html.decode('utf-8')
+    else:
+        return "Error"
+
+
+def parse_week_forecast(city, html):
+    soup = BeautifulSoup(html, 'html.parser')
+    result_json_list = []
+    dow_list = soup.find_all("td", {'align': 'center', 'bgcolor': '#f6f6f6', 'width': '88'})
+    dow_list = [child.string for child in dow_list]
+    dow_list = [dow_kor_eng[elem.split()[1][1:-1]] for elem in dow_list]
+    weather_temp_list = soup.find_all("tr", {'bgcolor': '#FFFFFF'})
+
+    if city == '서울':
+        while '\n' in weather_temp_list[0].contents:
+            weather_temp_list[0].contents.remove("\n")
+        while '\n' in weather_temp_list[1].contents:
+            weather_temp_list[1].contents.remove("\n")
+        weather_list = [content.img['alt'] for content in weather_temp_list[0].contents[1:]]
+        temp_list = [content.string for content in weather_temp_list[1].contents[1:]]
+        temp_list = [(elem.split(' / ')[0], elem.split(' / ')[1]) for elem in temp_list]
+    elif city == '대전':
+        while '\n' in weather_temp_list[12].contents:
+            weather_temp_list[12].contents.remove("\n")
+        while '\n' in weather_temp_list[13].contents:
+            weather_temp_list[13].contents.remove("\n")
+        weather_list = [content.img['alt'] for content in weather_temp_list[12].contents[1:]]
+        temp_list = [content.string for content in weather_temp_list[13].contents[1:]]
+        temp_list = [(elem.split(' / ')[0], elem.split(' / ')[1]) for elem in temp_list]
+        print(weather_list)
+        print(temp_list)
+    elif city == '대구':
+        while '\n' in weather_temp_list[23].contents:
+            weather_temp_list[23].contents.remove("\n")
+        while '\n' in weather_temp_list[24].contents:
+            weather_temp_list[24].contents.remove("\n")
+        weather_list = [content.img['alt'] for content in weather_temp_list[23].contents[1:]]
+        temp_list = [content.string for content in weather_temp_list[24].contents[1:]]
+        temp_list = [(elem.split(' / ')[0], elem.split(' / ')[1]) for elem in temp_list]
+    elif city == '부산':
+        while '\n' in weather_temp_list[27].contents:
+            weather_temp_list[27].contents.remove("\n")
+        while '\n' in weather_temp_list[28].contents:
+            weather_temp_list[28].contents.remove("\n")
+        weather_list = [content.img['alt'] for content in weather_temp_list[27].contents[1:]]
+        temp_list = [content.string for content in weather_temp_list[28].contents[1:]]
+        temp_list = [(elem.split(' / ')[0], elem.split(' / ')[1]) for elem in temp_list]
+    for i in range(len(weather_list)):
+        if ' 후 갬' in weather_list[i]:
+            weather_list[i].replace(' 후 갬', '')
+        result_json_list.append({'dow': dow_list[i][:3], 'weather': weather_list[i], 'max_temp': temp_list[i][1], 'min_temp': temp_list[i][0]})
+    # 내일 날씨 추가####################################################
+    request_tomorrow = urllib.request.Request('http://apis.skplanetx.com/weather/forecast/3days?version=1&lat='+city_to_geo[city][0]+'&lon='+city_to_geo[city][0])
+    request_tomorrow.add_header('appKey', 'be02eb42-18ce-3488-830a-f8334ce8f2a2')
+    tomorrow_json = json.loads(urllib.request.urlopen(request_tomorrow).read().decode('utf-8'))
+    print(dow_list_glob[dow_list_glob.index(dow_list[0])-1])
+    print(tomorrow_json['weather']['forecast3days'][0]['fcstdaily']['temperature']['tmax2day'])
+    print(tomorrow_json['weather']['forecast3days'][0]['fcstdaily']['temperature']['tmin2day'])
+    result_json_list.insert(0, {'dow': dow_list_glob[dow_list_glob.index(dow_list[0])-1][:3], 'max_temp': tomorrow_json['weather']['forecast3days'][0]['fcstdaily']['temperature']['tmax2day'][:-3], 'min_temp': tomorrow_json['weather']['forecast3days'][0]['fcstdaily']['temperature']['tmin2day'][:-3]})
+    return result_json_list
 
 
 def feels_like(temp, wind_speed):
@@ -129,6 +218,7 @@ def home():
         try:
             Username = session_moum[user].decode("UTF-8")
             print(Username)
+            week_forcast_list = parse_week_forecast('대전', get_week_forecast())
             data = api_call("Daejeon")
             dust_data = api_call_dust("대전")
             if data != "Error" and dust_data != "Error":
@@ -148,7 +238,7 @@ def home():
                 humidity = j['weather']['minutely'][0]['humidity']
                 pressure = j['weather']['minutely'][0]['pressure']['surface']
                 dust = dust_j['weather']['dust'][0]['pm10']['grade']
-                return render_template('home.html',username=Username,city=city_name,temp=temp,weather=weather, feels_like=str(temp_feels_like), rainfall=rain_fall, wind_speed=wind_speed, wind_orientation=wind_direction, humidity=humidity, pressure=pressure, dust=dust)
+                return render_template('home.html',username=Username,city=city_name,temp=temp,weather=weather, feels_like=str(temp_feels_like), rainfall=rain_fall, wind_speed=wind_speed, wind_orientation=wind_direction, humidity=humidity, pressure=pressure, dust=dust, week_forcast_list=week_forcast_list[:6])
             else:
                 return "Error while api calling"
         except:
