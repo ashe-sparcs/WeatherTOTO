@@ -83,10 +83,10 @@
             </div>
             <div class="mdl-tabs mdl-js-tabs mdl-color--primary">
                 <div class="mdl-tabs__tab-bar ">
-                    <a href="#tab1-panel" class="mdl-tabs__tab is-active mdl-color-text--white mdl-tabs__tab-active">Seoul</a>
-                    <a href="#tab2-panel" class="mdl-tabs__tab mdl-color-text--white">Daejeon</a>
-                    <a href="#tab3-panel" class="mdl-tabs__tab mdl-color-text--white">Daegu</a>
-                    <a href="#tab4-panel" class="mdl-tabs__tab mdl-color-text--white">Busan</a>
+                    <a href="/hourly/Seoul" class="mdl-tabs__tab {% if region =="Seoul" %}mdl-tabs__tab-active{% endif %} mdl-color-text--white">Seoul</a>
+                    <a href="/hourly/Daejeon" class="mdl-tabs__tab  {% if region =="Daejeon" %}mdl-tabs__tab-active{% endif %}  mdl-color-text--white">Daejeon</a>
+                    <a href="/hourly/Daegu" class="mdl-tabs__tab  {% if region =="Daegu" %}mdl-tabs__tab-active{% endif %}  mdl-color-text--white">Daegu</a>
+                    <a href="/hourly/Busan" class="mdl-tabs__tab  {% if region =="Busan" %}mdl-tabs__tab-active{% endif %}  mdl-color-text--white">Busan</a>
                 </div>
             </div>
         </header>
@@ -94,7 +94,7 @@
             <header class="demo-drawer-header">
                 <img src="/static/mdl/images/user.jpg" class="demo-avatar">
                 <div class="demo-avatar-dropdown">
-                    <span>hello@example.com</span>
+                  <span>Hello {{username}}!</span>
                     <div class="mdl-layout-spacer"></div>
                     <button id="accbtn" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
                         <i class="material-icons" role="presentation">arrow_drop_down</i>
@@ -128,7 +128,7 @@
                 </div>
                 <div class="mdl-card mdl-cell mdl-cell--6-col mdl-shadow--2dp">
                     <div class="mdl-card__title">
-                        Chance of Rain(%)
+                        Precipitation(mm)
                     </div>
                     <div class="mdl-card__supporting-text">
                         <canvas id="rain-chart" width="400" height="250"></canvas>
@@ -136,7 +136,7 @@
                 </div>
                 <div class="mdl-card mdl-cell mdl-cell--6-col mdl-shadow--2dp">
                     <div class="mdl-card__title">
-                        Clouds(%)
+                        Humidity(%)
                     </div>
                     <div class="mdl-card__supporting-text">
                         <canvas id="cloud-chart" width="400" height="250"></canvas>
@@ -144,7 +144,7 @@
                 </div>
                 <div class="mdl-card mdl-cell mdl-cell--6-col mdl-shadow--2dp">
                     <div class="mdl-card__title">
-                        Wind Speed(km/h)
+                        Wind Speed(m/s)
                     </div>
                     <div class="mdl-card__supporting-text">
                         <canvas id="wind-chart" width="400" height="250"></canvas>
@@ -207,10 +207,10 @@
         var tempChart = new Chart(tempCtx, {
             type: 'line',
             data: {
-                labels: ["0", "3", "6", "9", "12", "15", "18", "21", "24"],
+                labels: ["4", "7", "10", "13", "16", "19", "22", "25", "28"],
                 datasets: [{
                     label: 'Gurachung',
-                    data: [-1, -3, 0, 4, 11, 14, 9, 2, 0],
+                  data: {{ temp_list }},
                     backgroundColor: [
                         'rgba(255, 255, 255, 0)',
                         'rgba(255, 255, 255, 0)',
@@ -249,7 +249,7 @@
         var rainChart = new Chart(rainCtx, {
             type: 'line',
             data: {
-                labels: ["0", "3", "6", "9", "12", "15", "18", "21", "24"],
+                labels: ["4", "7", "10", "13", "16", "19", "22", "25", "28"],
                 datasets: [
                 {
                     label: 'User Average',
@@ -278,7 +278,7 @@
                 },
                 {
                     label: 'Gurachung',
-                    data: [1, 1 ,1, 1, 1, 1, 1, 1],
+                  data: {{ rain_list }},
                     backgroundColor: [
                         'rgba(255, 255, 255, 0)',
                         'rgba(255, 255, 255, 0)',
@@ -317,10 +317,10 @@
         var cloudChart = new Chart(cloudCtx, {
             type: 'line',
             data: {
-                labels: ["0", "3", "6", "9", "12", "15", "18", "21", "24"],
+                labels: ["4", "7", "10", "13", "16", "19", "22", "25", "28"],
                 datasets: [{
                     label: 'Gurachung',
-                    data: [-1, -3, 0, 4, 11, 14, 9, 2, 0],
+                  data: {{ humidity_list }},
                     backgroundColor: [
                         'rgba(255, 255, 255, 0)',
                         'rgba(255, 255, 255, 0)',
@@ -358,10 +358,10 @@
         var windChart = new Chart(windCtx, {
             type: 'line',
             data: {
-                labels: ["0", "3", "6", "9", "12", "15", "18", "21", "24"],
+                labels: ["4", "7", "10", "13", "16", "19", "22", "25", "28"],
                 datasets: [{
                     label: 'Gurachung',
-                    data: [-1, -3, 0, 4, 11, 14, 9, 2, 0],
+                  data: {{ speed_list }},
                     backgroundColor: [
                         'rgba(255, 255, 255, 0)',
                         'rgba(255, 255, 255, 0)',

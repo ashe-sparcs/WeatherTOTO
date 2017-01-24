@@ -13,10 +13,14 @@ from flask import redirect,Flask, request, render_template, send_from_directory,
 from decimal import Decimal
 import traceback
 from bs4 import BeautifulSoup
-
+import atexit
+from apscheduler.scheduler import Scheduler
+import pytz
 app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test12.db'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ashe.db'
+cron = Scheduler(daemon=True)
+cron.start()
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test14.db'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ashe.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 
@@ -75,15 +79,17 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
     pw = db.Column(db.String(80), unique=False)
+    total_money = db.Column(db.Integer)
     predictions = db.relationship('Prediction', backref='User',
                                 lazy='dynamic')
     #money = db.Column(db.Integer, unique=False)
     #total = db.Column(db.Integer, unique=False)
     #win = db.Column(db.Integer, unique=False)
 
-    def __init__(self, username, pw):
+    def __init__(self, username, pw, total_money):
         self.username = username
         self.pw = pw
+        self.total_money = total_money
         return None
     def __repr__(self):
         return '<User %r>' %self.username
@@ -93,15 +99,91 @@ class Prediction(db.Model):
     date = db.Column(db.String(50))
     weather = db.Column(db.String(50))
     region = db.Column(db.String(50))
+    bet_money = db.Column(db.Integer)
     user_name = db.Column(db.String(80), db.ForeignKey('user.username'))
-
-    def __init__(self, date, weather, region):
+    
+    def __init__(self, date, weather, region, bet_money):
         self.date = date
         self.weather = weather
         self.region = region
+        self.bet_money = bet_money
         return None
 db.create_all()
 
+
+def datetime_to_str(dt):
+    result = {}
+    string=""
+    result['year'] = str(dt.year)[2:]
+    result['month'] = str(dt.month)
+    result['day'] = str(dt.day)
+    result['hour'] = str(dt.hour)
+    result['minute'] = str(dt.minute)
+    result['second'] = str(dt.second)
+    if len(result['month']) == 1:
+        result['month'] = '0' + result['month']
+    if len(result['day']) == 1:
+        result['day'] = '0' + result['day']
+    if len(result['hour']) == 1:
+        result['hour'] = '0' + result['hour']
+    if len(result['minute']) == 1:
+        result['minute'] = '0' + result['minute']
+    string = result['year'] + '.' + result['month'] + '.' + result['day'] + '.' + result['hour'] + ':' + result['minute']
+    return string
+
+@cron.interval_schedule(minutes=2)
+def job_function():
+    #print(datetime.datetime.utcnow())
+    time_str=datetime.datetime.now(pytz.timezone('Asia/Seoul'))
+    time_str=datetime_to_str(time_str)
+    print(time_str)
+    #3시간마다 토토를 돌린다.
+    #Example Time : 17.02.22.18:00
+    #Server Time - Example Time < 0: 즉 시간이 지나면.
+    #모든 prediction 중에서 시간이 Example Time 인 prediction 다 긁어옴
+    #결과가 : Rain일 때,
+    #js는 1000, js3는 2000원 걸어서 이김
+    #user js의 total money를 1000원 증가
+    #user js3의 total money를 2000원 증가
+    #if Time :
+    weather = ""
+    cities = ["Seoul","Daejeon","Busan","Daegu"]
+    money_all = 0
+    money_win = 0
+    bedang = 0  # 배당률 money_all / money_win
+    for city in cities:
+        weather = ""
+        money_all = 0
+        money_win = 0
+        bedang = 0  # 배당률 money_all / money_win
+
+        data = api_call(1,city)
+        j = json.loads(data.decode('utf-8'))
+        precip_type=j['weather']['minutely'][0]['precipitation']['sinceOntime'] #Weather
+        print(precip_type)
+        if precip_type=='0.00':
+            weather_win = "dry"
+        else:
+            weather_win = "rain"
+        predicts = Prediction.query.filter_by(date=time_str,region=city)
+        for predict in predicts:
+            money_all+=predict.bet_money #걸린 돈 모조리 가져옴 Total_money = 1000+2000+2000+2000 
+            if predict.weather == weather_win:
+                money_win+=predict.bet_money #이긴 돈 money_win = 1000+2000
+        try:    
+            bedang = money_all / money_win
+        except:
+            bedang = 1
+        for predict in predicts:
+            if predict.weather == weather_win:
+                User.query.filter_by(username=predict.user_name).first().total_money+=predict.bet_money * bedang    #할당된 돈만큼 user에게 더해줌
+                db.session.commit()
+
+            #print(predict.bet_money)
+    print("Finish Cron")
+
+cron.add_cron_job(job_function, minute='0-59')
+atexit.register(lambda: cron.shutdown(wait=False))
 
 def get_week_forecast():
     url = "https://www.weatheri.co.kr/forecast/forecast04.php"
@@ -274,6 +356,35 @@ def home(region):
             return "Key Error"
     
 
+@app.route("/hourly", defaults={'region': 'Seoul'})
+@app.route("/hourly/<region>")
+def hourly(region):
+    if request.cookies.get('SESSIONID') is None:
+        return redirect('/login')
+    else:
+        user = request.cookies.get('SESSIONID')
+        try:
+            Username = session_moum[user].decode("UTF-8")
+        except:
+            traceback.print_exc()
+            return "Key Error. Call Admin"
+    t_list=[]
+    h_list=[]
+    s_list=[]
+    r_list=[]
+    data_forecast = api_call(2,region)
+    if data_forecast != "Error":
+        j = json.loads(data_forecast.decode('utf-8'))
+        for i in [4,7,10,13,16,19,22,25,28]:
+            s_list.append(float(j['weather']['forecast3days'][0]['fcst3hour']['wind']['wspd'+str(i)+'hour']))
+            t_list.append(float(j['weather']['forecast3days'][0]['fcst3hour']['temperature']['temp'+str(i)+'hour']))
+            h_list.append(float(j['weather']['forecast3days'][0]['fcst3hour']['humidity']['rh'+str(i)+'hour']))
+            r_list.append(float(j['weather']['forecast3days'][0]['fcst3hour']['precipitation']['prob'+str(i)+'hour']))
+
+    return render_template("hourly.html",region=region,username=Username,speed_list=s_list,temp_list=t_list,humidity_list=h_list,rain_list=r_list)
+
+
+
 #Add gisang-chung
 @app.route("/add_kma")
 def add_kma():
@@ -321,7 +432,7 @@ def register():
         if User.query.filter_by(username=query0).first() is not None:
             return "User with same username already exists!"
         else:
-            user = User(query0, query1)
+            user = User(query0, query1, 1000)
             db.session.add(user)
             db.session.commit()
             return "User %s register completed"%query0
@@ -334,6 +445,7 @@ def predict():
   Date : <input type=text name = date>
   Weather : <input type=text name = weather>
   Region : <input type=text name = region>
+  Money : <input type=text name = money>
   <input type=submit value=Add>'''
     else:
     #Weather prediction
@@ -350,15 +462,16 @@ def predict():
         weather = request.form['weather']
         #Username = request.form['Username']
         region = request.form['region']
-        predict = Prediction(date,weather,region)
-
+        money = request.form['money']
+        predict = Prediction(date,weather,region,int(Decimal(money)))
         #Username = asdf / Assume -> User already exists
         user = User.query.filter_by(username=Username).first()
+        user.total_money-=int(Decimal(money))
         if user is not None:
             user.predictions.append(predict)
             db.session.add(user)
             db.session.commit()
-            return "Date : %s, Weather : %s, region : %s, Username : %s add Succeed!"%(date,weather,region,Username)
+            return "Date : %s, Weather : %s, region : %s, money : %s Username : %s add Succeed!"%(date,weather,region,money,Username)
         else:
             return "Username : %s doesn't exist!"%Username
 
@@ -377,23 +490,17 @@ def predict_list():
     date = request.form['date']
     region = request.form['region']
     rain='Rain: '
-    snow='Snow: '
-    nothing='Nothing: '
-    clear='Clear: '
+    dry='Dry: '
     final_str=''
     #First, Same date
     query = Prediction.query.filter_by(date=date,region=region).all()
     #Second, Same weather -> For time complexity(n^2 -> n)
     for i in range(len(query)):
         if query[i].weather=='rain':
-            rain+=query[i].user_name+', '
-        if query[i].weather=='snowy':
-            snow+=query[i].user_name+', '
-        if query[i].weather=='nothing':
-            nothing+=query[i].user_name+', '
-        if query[i].weather=='Clear':
-            clear+=query[i].user_name+', '
-    return rain+snow+nothing+clear+' On date %s, region %s'%(date,region)
+            rain+=query[i].user_name+', '+str(query[i].bet_money)+'\n'
+        if query[i].weather=='dry':
+            dry+=query[i].user_name+', '+str(query[i].bet_money)+'\n'
+    return rain+'\n'+dry+'\n On date %s, region %s'%(date,region)
 
 
 @app.route("/login", methods=['GET','POST'])
@@ -419,9 +526,11 @@ def login():
 @app.route("/user_list")
 def user_list():
     all_users = User.query.all()
+    print(User.query.filter_by(username="js").first().total_money)
+
     user_list_str=''
     for i in range(len(all_users)):
-        user_list_str+=all_users[i].username+'\n'
+        user_list_str+=all_users[i].username+', '+str(all_users[i].total_money)+'\n'
     print(session_moum)
     return user_list_str
 
