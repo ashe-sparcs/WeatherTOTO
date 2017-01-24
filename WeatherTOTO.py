@@ -10,7 +10,7 @@ import datetime
 import json
 import urllib.request
 from flask import redirect,Flask, request, render_template, send_from_directory,make_response
-
+from decimal import Decimal
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test12.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
@@ -71,14 +71,32 @@ db.create_all()
 def red():
     return redirect('/home')
 
-def api_call(city):
+def api_call(num, city):
     if city=="Seoul":
         id=108
+        lat=37.57
+        lon=127
     if city=="Daejeon":
         id=133
+        lat=36.32
+        lon=127.42
+    if city=="Busan":
+        id=968
+        lat=35
+        lon=129
+    if city=="Daegu":
+        id=860
+        lat=35.87
+        lon=128.6
     #url = "http://api.openweathermap.org/data/2.5/weather?q="+city+"&mode=json&appid=e12608ad352a39055355cacc3d6a2b8b"
-    url="http://apis.skplanetx.com/weather/current/minutely?lon=&village=&county=&stnid="+str(id)+"&lat=&city=&version=1"
-    
+    if num==1:
+        url="http://apis.skplanetx.com/weather/current/minutely?lon=&village=&county=&stnid="+str(id)+"&lat=&city=&version=1"
+    if num==2:
+        url="http://apis.skplanetx.com/weather/forecast/3days?version=1&lat="+str(lat)+"&lon="+str(lon)+"&city=&county=&village="
+    if num==3:
+        url="http://apis.skplanetx.com/weather/dust?version=1&lat="+str(lat)+"&lon="+str(lon)
+    if num==4:
+        url="http://api.openweathermap.org/data/2.5/weather?q="+city+"&mode=json&appid=e12608ad352a39055355cacc3d6a2b8b"
     request = urllib.request.Request(url)
     request.add_header('appKey','be02eb42-18ce-3488-830a-f8334ce8f2a2')
     response = urllib.request.urlopen(request)
@@ -89,24 +107,58 @@ def api_call(city):
     else:
         return "Error"
 
-@app.route("/home")
-def home():
+@app.route("/logout")
+def logout():
+    redirect_to_home = redirect('/login')
+    response = make_response(redirect_to_home)
+    response.set_cookie('SESSIONID','')
+    return response
+
+
+@app.route("/home", defaults={'region': 'Seoul'})
+@app.route("/home/<region>")
+def home(region):
     if request.cookies.get('SESSIONID') is None:
         return redirect('/login')
     else:
         user = request.cookies.get('SESSIONID')
         try:
             Username = session_moum[user].decode("UTF-8")
-            print(Username)
-            data = api_call("Daejeon")
+            if region==None:
+                region="Seoul"
+            data = api_call(1,region)
+            data_rain = api_call(2,region)
+            data_dust = api_call(3,region)
+            data_now = api_call(4,region)
             if data != "Error":
                 j = json.loads(data.decode('utf-8'))
+                j_rain = json.loads(data_rain.decode('utf-8'))
+                j_dust = json.loads(data_dust.decode('utf-8'))
+                j_now = json.loads(data_now.decode('utf-8'))
                 #json city name -> Seoul
                 weather = j['weather']['minutely'][0]['sky']['name']
                 weather = weather_check[weather]
-                city_name = j['weather']['minutely'][0]['station']['name']
+                #city_name = j['weather']['minutely'][0]['station']['name']
+                city_name = region
                 temp = j['weather']['minutely'][0]['temperature']['tc']
-                return render_template('home.html',username=Username,city=city_name,temp=temp,weather=weather)
+                rain_list=[]
+                precip=float(Decimal(j['weather']['minutely'][0]['precipitation']['sinceOntime']))
+                print(precip)
+                precip_type=j['weather']['minutely'][0]['precipitation']['sinceOntime']
+                if precip_type == '3':
+                    precip = precip * 10
+                wind_speed=j_now['wind']['speed']
+                wind_deg=j_now['wind']['deg']
+                humidity=j_now['main']['humidity']
+                pressure=j_now['main']['pressure']
+                temp_float=float(Decimal(temp))
+                speed_float=float(wind_speed)*3.6
+                feel=13.12+0.6215*temp_float-11.37*pow(speed_float,0.15)+0.3965*pow(speed_float,0.15)*temp_float
+                feel=round(feel)
+                for i in [4,7,10,13,16,19,22,25,28]:
+                    rain_list.append(int(Decimal(j_rain['weather']['forecast3days'][0]['fcst3hour']['precipitation']['prob'+str(i)+'hour'])))
+                dust = j_dust['weather']['dust'][0]['pm10']['grade']
+                return render_template('home.html',region=region,feel=feel,precipitation=precip,wind_deg=wind_deg,wind_speed=wind_speed,humidity=humidity,pressure=pressure,username=Username,city=city_name,temp=temp,weather=weather,rain_op=rain_list,dust=dust)
             else:
                 return "Error while api calling"
         except:

@@ -80,10 +80,10 @@
             </div>
             <div class="mdl-tabs mdl-js-tabs mdl-color--primary">
                 <div class="mdl-tabs__tab-bar ">
-                    <a href="#tab1-panel" class="mdl-tabs__tab mdl-tabs__tab-active mdl-color-text--white">Seoul</a>
-                    <a href="#tab2-panel" class="mdl-tabs__tab mdl-color-text--white">Daejeon</a>
-                    <a href="#tab3-panel" class="mdl-tabs__tab mdl-color-text--white">Daegu</a>
-                    <a href="#tab4-panel" class="mdl-tabs__tab mdl-color-text--white">Busan</a>
+                  <a href="/home/Seoul" class="mdl-tabs__tab {% if region =="Seoul" %}mdl-tabs__tab-active{% endif %} mdl-color-text--white">Seoul</a>
+                    <a href="/home/Daejeon" class="mdl-tabs__tab {% if region =="Daejeon" %}mdl-tabs__tab-active{% endif %} mdl-color-text--white">Daejeon</a>
+                    <a href="/home/Daegu" class="mdl-tabs__tab {% if region =="Daegu" %}mdl-tabs__tab-active{% endif %} mdl-color-text--white">Daegu</a>
+                    <a href="/home/Busan" class="mdl-tabs__tab {% if region =="Busan" %}mdl-tabs__tab-active{% endif %} mdl-color-text--white">Busan</a>
                 </div>
             </div>
         </header>
@@ -98,7 +98,7 @@
                         <span class="visuallyhidden">Accounts</span>
                     </button>
                     <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="accbtn">
-                        <li class="mdl-menu__item">Log out</li>
+                      <li class="mdl-menu__item"><a href="/logout">Log out</a></li>
                     </ul>
                 </div>
             </header>
@@ -181,14 +181,14 @@
                             <span class="mdl-list__item-primary-content">
                                 <i class="mdl-list__item-icon wi wi-thermometer" style="font-size: 2em"></i>
                                 <span>Feels Like</span>
-                                <span class="mdl-list__item-sub-title">-1°</span>
+                                <span class="mdl-list__item-sub-title">{{feel}}°</span>
                             </span>
                         </li>
                         <li class="mdl-list__item mdl-list__item--two-line">
                             <span class="mdl-list__item-primary-content">
                                 <i class="mdl-list__item-icon wi wi-rain" style="font-size: 2em"></i>
                                 <span>Rainfall</span>
-                                <span class="mdl-list__item-sub-title">10mm</span>
+                                <span class="mdl-list__item-sub-title">{{precipitation}}mm</span>
                             </span>
                         </li>
                         <!-- 보퍼트 풍력 계급으로 표현 -->
@@ -196,35 +196,35 @@
                             <span class="mdl-list__item-primary-content">
                                 <i class="mdl-list__item-icon wi wi-wind-beaufort-0" style="font-size: 2em"></i>
                                 <span>Wind Speed</span>
-                                <span class="mdl-list__item-sub-title">0 kph</span>
+                                <span class="mdl-list__item-sub-title">{{wind_speed}} m/s</span>
                             </span>
                         </li>
                         <li class="mdl-list__item mdl-list__item--two-line">
                             <span class="mdl-list__item-primary-content">
                                 <i class="mdl-list__item-icon wi wi-wind wi-from-n" style="font-size: 2em"></i>
                                 <span>Wind Orientation</span>
-                                <span class="mdl-list__item-sub-title">From N</span>
+                                <span class="mdl-list__item-sub-title">{{wind_deg}}°</span>
                             </span>
                         </li>
                         <li class="mdl-list__item mdl-list__item--two-line">
                             <span class="mdl-list__item-primary-content">
                                 <i class="mdl-list__item-icon wi wi-humidity" style="font-size: 2em"></i>
                                 <span>Humidity</span>
-                                <span class="mdl-list__item-sub-title">40%</span>
+                                <span class="mdl-list__item-sub-title">{{humidity}}%</span>
                             </span>
                         </li>
                         <li class="mdl-list__item mdl-list__item--two-line">
                             <span class="mdl-list__item-primary-content">
                                 <i class="mdl-list__item-icon wi wi-barometer" style="font-size: 2em"></i>
                                 <span>Pressure</span>
-                                <span class="mdl-list__item-sub-title">From N</span>
+                                <span class="mdl-list__item-sub-title">{{pressure}} hPa</span>
                             </span>
                         </li>
                         <li class="mdl-list__item mdl-list__item--two-line">
                             <span class="mdl-list__item-primary-content">
                                 <i class="mdl-list__item-icon wi wi-dust" style="font-size: 2em"></i>
                                 <span>Dust(PM10)</span>
-                                <span class="mdl-list__item-sub-title">Normal</span>
+                                <span class="mdl-list__item-sub-title">{{dust}}</span>
                             </span>
                         </li>
                     </ul>
@@ -286,11 +286,11 @@
         var rainChart = new Chart(rainCtx, {
             type: 'line',
             data: {
-                labels: ["0", "3", "6", "9", "12", "15", "18", "21", "24"],
+                labels: ["4", "7", "10", "13", "16", "19", "22", "25", "28"],
                 datasets: [
                 {
                     label: 'User Average',
-                    data: [-1, -3, 0, 4, 11, 14, 9, 2, 0],                    
+                  data: [0,0,0,0,2,1,1,0,0],                    
                     backgroundColor: [
                         'rgba(255, 255, 255, 0)',
                         'rgba(255, 255, 255, 0)',
@@ -315,7 +315,7 @@
                 },
                 {
                     label: 'Gurachung',
-                    data: [1, 1 ,1, 1, 1, 1, 1, 1],
+                  data: {{rain_op}},
                     backgroundColor: [
                         'rgba(255, 255, 255, 0)',
                         'rgba(255, 255, 255, 0)',
