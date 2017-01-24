@@ -118,10 +118,10 @@
                 </div>
             </header>
             <nav class="demo-navigation mdl-navigation mdl-color--blue-grey-800">
-                <a class="mdl-navigation__link" href=""><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">wb_sunny</i>Overview</a>
-                <a class="mdl-navigation__link" href=""><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">today</i>Daily</a>
-                <a class="mdl-navigation__link" href=""><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">schedule</i>Hourly</a>
-                <a class="mdl-navigation__link" href=""><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">help</i>Predict</a>
+                <a class="mdl-navigation__link" href="/home"><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">wb_sunny</i>Overview</a>
+                <a class="mdl-navigation__link" href="/daily"><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">today</i>Daily</a>
+                <a class="mdl-navigation__link" href="/hourly"><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">schedule</i>Hourly</a>
+                <a class="mdl-navigation__link" href="/toto_fast"><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">help</i>Predict</a>
                 <a class="mdl-navigation__link" href=""><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">people</i>Following</a>
                 <a class="mdl-navigation__link" href=""><i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">settings</i>Settings</a>
             </nav>
@@ -155,12 +155,12 @@
                             <td>{{ rain_money }}</td>
                             <td>{{ dry_money }}</td>
                             <td class="mdl-data-table__cell--non-numeric">
-                                <button id="rain-{{ target_time.year }}{{ target_time.month }}{{ target_time.day }}{{ target_time.hour }}{{ target_time.minute }}" type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button" onclick="betOnRain('{{ username }}', '{{ region }}', {{ target_time }});">
+                                <button id="rain-{{ target_time.year }}{{ target_time.month }}{{ target_time.day }}{{ target_time.hour }}{{ target_time.minute }}" type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button" onclick="betOnRain('{{ username }}', '{{ region }}', {{ target_time }}, {{ due_time }});">
                                     Rain
                                 </button>
                             </td>
                             <td class="mdl-data-table__cell--non-numeric">
-                                <button id="dry-{{ target_time.year }}{{ target_time.month }}{{ target_time.day }}{{ target_time.hour }}{{ target_time.minute }}" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button" onclick="betOnDry('{{ username }}', '{{ region }}', {{ target_time }});">
+                                <button id="dry-{{ target_time.year }}{{ target_time.month }}{{ target_time.day }}{{ target_time.hour }}{{ target_time.minute }}" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button" onclick="betOnDry('{{ username }}', '{{ region }}', {{ target_time }}, {{ due_time }});">
                                     Dry
                                 </button>
                                 <div id="snackbar-dry" class="mdl-js-snackbar mdl-snackbar">
@@ -249,7 +249,7 @@
                 }
             }
         });
-        function betOnRain(username, region, target) {
+        function betOnRain(username, region, target, due) {
             var dialog = document.querySelector('dialog');
             if (! dialog.showModal) {
                 dialogPolyfill.registerDialog(dialog);
@@ -269,6 +269,7 @@
                         'user_name': username,
                         'region': region,
                         'date': target,
+                        'due': due,
                         'weather': 'rain',
                         'money': betMoney
                     }),
@@ -282,7 +283,7 @@
                 dialog.close();
             });
         }
-        function betOnDry(username, region, target) {
+        function betOnDry(username, region, target, due) {
             var dialog = document.querySelector('dialog');
             if (! dialog.showModal) {
                 dialogPolyfill.registerDialog(dialog);
@@ -302,6 +303,7 @@
                         'user_name': username,
                         'region': region,
                         'date': target,
+                        'due': due,
                         'weather': 'dry',
                         'money': betMoney
                     }),
