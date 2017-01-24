@@ -127,7 +127,7 @@ def logout():
 
 @app.route("/home", defaults={'region': 'Seoul'})
 @app.route("/home/<region>")
-def home():
+def home(region):
     if request.cookies.get('SESSIONID') is None:
         return redirect('/login')
     else:
