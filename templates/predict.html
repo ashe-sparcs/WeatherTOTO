@@ -141,146 +141,36 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% for i in range(8) %}
+                        {% set target_time = target_time_list[i] %}
+                        {% set due_time = due_time_list[i] %}
+                        {% set rain_money = bet_on_rain_list[i] %}
+                        {% set dry_money = bet_on_dry_list[i] %}
+                        {% if target_time.complete not in already %}
                         <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td class="mdl-data-table__cell--non-numeric">17.01.24.15:00</td>
-                            <td class="mdl-data-table__cell--non-numeric">17.01.23.15:00</td>
-                            <td>1000</th>
-                                <td>2000</th>
-                                    <td class="mdl-data-table__cell--non-numeric">
-                                        <button id="button-rain" type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
-                                            Rain
-                                        </button>
-                                    </td>
-                                    <td class="mdl-data-table__cell--non-numeric">
-                                        <button id="button-dry" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
-                                            Dry
-                                        </button>
-                                        <div id="snackbar-dry" class="mdl-js-snackbar mdl-snackbar">
-                                            <div class="mdl-snackbar__text"></div>
-                                            <button class="mdl-snackbar__action" type="button"></button>
-                                        </div>
-                                    </td>
+
+                            <td class="mdl-data-table__cell--non-numeric">{{ region }}</td>
+                            <td class="mdl-data-table__cell--non-numeric">{{ target_time.year }}.{{ target_time.month }}.{{ target_time.day }}.{{ target_time.hour }}:{{ target_time.minute }}</td>
+                            <td class="mdl-data-table__cell--non-numeric">{{ due_time.year }}.{{ due_time.month }}.{{ due_time.day }}.{{ due_time.hour }}:{{ due_time.minute }}</td>
+                            <td>{{ rain_money }}</td>
+                            <td>{{ dry_money }}</td>
+                            <td class="mdl-data-table__cell--non-numeric">
+                                <button id="rain-{{ target_time.year }}{{ target_time.month }}{{ target_time.day }}{{ target_time.hour }}{{ target_time.minute }}" type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button" onclick="betOnRain('{{ username }}', '{{ region }}', {{ target_time }});">
+                                    Rain
+                                </button>
+                            </td>
+                            <td class="mdl-data-table__cell--non-numeric">
+                                <button id="dry-{{ target_time.year }}{{ target_time.month }}{{ target_time.day }}{{ target_time.hour }}{{ target_time.minute }}" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button" onclick="betOnDry('{{ username }}', '{{ region }}', {{ target_time }});">
+                                    Dry
+                                </button>
+                                <div id="snackbar-dry" class="mdl-js-snackbar mdl-snackbar">
+                                    <div class="mdl-snackbar__text"></div>
+                                    <button class="mdl-snackbar__action" type="button"></button>
+                                </div>
+                            </td>
                         </tr>
-                        <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td class="mdl-data-table__cell--non-numeric">17.01.24.15:00</td>
-                            <td class="mdl-data-table__cell--non-numeric">17.01.23.15:00</td>
-                            <td>1000</th>
-                                <td>2000</th>
-                                    <td class="mdl-data-table__cell--non-numeric">
-                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
-                                            Rain
-                                        </button>
-                                    </td>
-                                    <td class="mdl-data-table__cell--non-numeric">
-                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
-                                            Dry
-                                        </button>
-                                    </td>
-                        </tr>
-                        <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td class="mdl-data-table__cell--non-numeric">17.01.24.15:00</td>
-                            <td class="mdl-data-table__cell--non-numeric">17.01.23.15:00</td>
-                            <td>1000</th>
-                                <td>2000</th>
-                                    <td class="mdl-data-table__cell--non-numeric">
-                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
-                                            Rain
-                                        </button>
-                                    </td>
-                                    <td class="mdl-data-table__cell--non-numeric">
-                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
-                                            Dry
-                                        </button>
-                                    </td>
-                        </tr>
-                        <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td class="mdl-data-table__cell--non-numeric">17.01.24.15:00</td>
-                            <td class="mdl-data-table__cell--non-numeric">17.01.23.15:00</td>
-                            <td>1000</th>
-                                <td>2000</th>
-                                    <td class="mdl-data-table__cell--non-numeric">
-                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
-                                            Rain
-                                        </button>
-                                    </td>
-                                    <td class="mdl-data-table__cell--non-numeric">
-                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
-                                            Dry
-                                        </button>
-                                    </td>
-                        </tr>
-                        <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td class="mdl-data-table__cell--non-numeric">17.01.24.15:00</td>
-                            <td class="mdl-data-table__cell--non-numeric">17.01.23.15:00</td>
-                            <td>1000</th>
-                                <td>2000</th>
-                                    <td class="mdl-data-table__cell--non-numeric">
-                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
-                                            Rain
-                                        </button>
-                                    </td>
-                                    <td class="mdl-data-table__cell--non-numeric">
-                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
-                                            Dry
-                                        </button>
-                                    </td>
-                        </tr>
-                        <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td class="mdl-data-table__cell--non-numeric">17.01.24.15:00</td>
-                            <td class="mdl-data-table__cell--non-numeric">17.01.23.15:00</td>
-                            <td>1000</th>
-                                <td>2000</th>
-                                    <td class="mdl-data-table__cell--non-numeric">
-                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
-                                            Rain
-                                        </button>
-                                    </td>
-                                    <td class="mdl-data-table__cell--non-numeric">
-                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
-                                            Dry
-                                        </button>
-                                    </td>
-                        </tr>
-                        <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td class="mdl-data-table__cell--non-numeric">17.01.24.15:00</td>
-                            <td class="mdl-data-table__cell--non-numeric">17.01.23.15:00</td>
-                            <td>1000</th>
-                                <td>2000</th>
-                                    <td class="mdl-data-table__cell--non-numeric">
-                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
-                                            Rain
-                                        </button>
-                                    </td>
-                                    <td class="mdl-data-table__cell--non-numeric">
-                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
-                                            Dry
-                                        </button>
-                                    </td>
-                        </tr>
-                        <tr>
-                            <td class="mdl-data-table__cell--non-numeric">Seoul</td>
-                            <td class="mdl-data-table__cell--non-numeric">17.01.24.15:00</td>
-                            <td class="mdl-data-table__cell--non-numeric">17.01.23.15:00</td>
-                            <td>1000</th>
-                                <td>2000</th>
-                                    <td class="mdl-data-table__cell--non-numeric">
-                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect rain-button">
-                                            Rain
-                                        </button>
-                                    </td>
-                                    <td class="mdl-data-table__cell--non-numeric">
-                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect dry-button">
-                                            Dry
-                                        </button>
-                                    </td>
-                        </tr>
+                        {% endif %}
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -337,34 +227,95 @@
         <div class="mdl-dialog__content">
             <form action="#">
               <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="sample4">
+                <input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="bet-money">
                 <label class="mdl-textfield__label" for="sample4">Money...</label>
                 <span class="mdl-textfield__error">Input is not a number!</span>
               </div>
             </form>
         </div>
         <div class="mdl-dialog__actions">
-          <button type="button" class="mdl-button close">OK</button>
+          <button id="ok-button" type="button" class="mdl-button close">OK</button>
+          <button id="cancel-button" type="button" class="mdl-button close">Cancel</button>
         </div>
     </dialog>
     <script src="/static/mdl/material.min.js"></script>
     <script src="/static/js/jquery-3.1.1.min.js"></script>
     <script>
-        var dialog = document.querySelector('dialog');
-        var showDialogButtonRain = document.querySelector('#button-rain');
-        var showDialogButtonDry = document.querySelector('#button-dry');
-        if (! dialog.showModal) {
-          dialogPolyfill.registerDialog(dialog);
+        var csrf_token = "{{ csrf_token() }}";
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                }
+            }
+        });
+        function betOnRain(username, region, target) {
+            var dialog = document.querySelector('dialog');
+            if (! dialog.showModal) {
+                dialogPolyfill.registerDialog(dialog);
+            }
+            dialog.showModal();
+            dialog.querySelector('#cancel-button').addEventListener('click', function() {
+                dialog.close();
+            });
+            dialog.querySelector('#ok-button').addEventListener('click', function() {
+                var betMoney = dialog.querySelector('#bet-money').value;
+                // username, target, due, betMoney to ajax call post.
+                $.ajax({
+                    type: 'POST',
+                    url: '/ajax/toto/add',
+                    contentType: 'application/json;charset=UTF-8',
+                    data: JSON.stringify({
+                        'user_name': username,
+                        'region': region,
+                        'date': target,
+                        'weather': 'rain',
+                        'money': betMoney
+                    }),
+                    success: function(response){
+                        // do something with response
+                        console.log(response);
+                        document.getElementById('rain-'+target.year+target.month+target.day+target.hour+target.minute).disabled = true;
+                        document.getElementById('dry-'+target.year+target.month+target.day+target.hour+target.minute).disabled = true;
+                    }
+                });
+                dialog.close();
+            });
         }
-        showDialogButtonRain.addEventListener('click', function() {
-          dialog.showModal();
-        });
-        showDialogButtonDry.addEventListener('click', function() {
-          dialog.showModal();
-        });
-        dialog.querySelector('.close').addEventListener('click', function() {
-          dialog.close();
-        });
+        function betOnDry(username, region, target) {
+            var dialog = document.querySelector('dialog');
+            if (! dialog.showModal) {
+                dialogPolyfill.registerDialog(dialog);
+            }
+            dialog.showModal();
+            dialog.querySelector('#cancel-button').addEventListener('click', function() {
+                dialog.close();
+            });
+            dialog.querySelector('#ok-button').addEventListener('click', function() {
+                var betMoney = dialog.querySelector('#bet-money').value;
+                // username, target, due, betMoney to ajax call post.
+                $.ajax({
+                    type: 'POST',
+                    url: '/ajax/toto/add',
+                    contentType: 'application/json;charset=UTF-8',
+                    data: JSON.stringify({
+                        'user_name': username,
+                        'region': region,
+                        'date': target,
+                        'weather': 'dry',
+                        'money': betMoney
+                    }),
+                    success: function(response){
+                        // do something with response
+                        console.log(response);
+                        document.getElementById('rain-'+target.year+target.month+target.day+target.hour+target.minute).disabled = true;
+                        document.getElementById('dry-'+target.year+target.month+target.day+target.hour+target.minute).disabled = true;
+                    }
+                });
+                dialog.close();
+            });
+        }
+
     </script>
 </body>
 
