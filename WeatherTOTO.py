@@ -7,6 +7,7 @@ import urllib.request
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import datetime
+import pytz
 import json
 import urllib.request
 from flask import redirect,Flask, request, render_template, send_from_directory,make_response
@@ -16,12 +17,20 @@ from bs4 import BeautifulSoup
 import atexit
 from apscheduler.scheduler import Scheduler
 import pytz
+from flask_wtf.csrf import CSRFProtect, CSRFError
+from flask_secret_key import secret
+
+
 app = Flask(__name__)
 cron = Scheduler(daemon=True)
 cron.start()
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test14.db'
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ashe.db'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test14.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ashe.db'
+csrf = CSRFProtect(app)
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test12.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ashe.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.secret_key = secret
 db = SQLAlchemy(app)
 
 session_moum={}
@@ -101,7 +110,7 @@ class Prediction(db.Model):
     region = db.Column(db.String(50))
     bet_money = db.Column(db.Integer)
     user_name = db.Column(db.String(80), db.ForeignKey('user.username'))
-    
+
     def __init__(self, date, weather, region, bet_money):
         self.date = date
         self.weather = weather
@@ -167,10 +176,10 @@ def job_function():
             weather_win = "rain"
         predicts = Prediction.query.filter_by(date=time_str,region=city)
         for predict in predicts:
-            money_all+=predict.bet_money #걸린 돈 모조리 가져옴 Total_money = 1000+2000+2000+2000 
+            money_all+=predict.bet_money #걸린 돈 모조리 가져옴 Total_money = 1000+2000+2000+2000
             if predict.weather == weather_win:
                 money_win+=predict.bet_money #이긴 돈 money_win = 1000+2000
-        try:    
+        try:
             bedang = money_all / money_win
         except:
             bedang = 1
@@ -222,7 +231,6 @@ def parse_week_forecast(city, html):
         weather_list = [content.img['alt'] for content in weather_temp_list[12].contents[1:]]
         temp_list = [content.string for content in weather_temp_list[13].contents[1:]]
         temp_list = [(elem.split(' / ')[0], elem.split(' / ')[1]) for elem in temp_list]
-        print(temp_list)
     elif city == 'Daegu':
         while '\n' in weather_temp_list[23].contents:
             weather_temp_list[23].contents.remove("\n")
@@ -239,17 +247,13 @@ def parse_week_forecast(city, html):
         weather_list = [content.img['alt'] for content in weather_temp_list[27].contents[1:]]
         temp_list = [content.string for content in weather_temp_list[28].contents[1:]]
         temp_list = [(elem.split(' / ')[0], elem.split(' / ')[1]) for elem in temp_list]
-    print(weather_list)
     for i in range(len(weather_list)):
         result_json_list.append({'dow': dow_list[i][:3], 'weather': weather_check[weather_list[i]], 'max_temp': temp_list[i][1], 'min_temp': temp_list[i][0]})
-    print(weather_list)
+
     # 내일 날씨 추가####################################################
     request_tomorrow = urllib.request.Request('http://apis.skplanetx.com/weather/forecast/3days?version=1&lat='+city_to_geo[city][0]+'&lon='+city_to_geo[city][0])
     request_tomorrow.add_header('appKey', 'be02eb42-18ce-3488-830a-f8334ce8f2a2')
     tomorrow_json = json.loads(urllib.request.urlopen(request_tomorrow).read().decode('utf-8'))
-    print(dow_list_glob[dow_list_glob.index(dow_list[0])-1])
-    print(tomorrow_json['weather']['forecast3days'][0]['fcstdaily']['temperature']['tmax2day'])
-    print(tomorrow_json['weather']['forecast3days'][0]['fcstdaily']['temperature']['tmin2day'])
     result_json_list.insert(0, {'dow': dow_list_glob[dow_list_glob.index(dow_list[0])-1][:3], 'weather': weather_check[tomorrow_json['weather']['forecast3days'][0]['fcst3hour']['sky']['name22hour']], 'max_temp': tomorrow_json['weather']['forecast3days'][0]['fcstdaily']['temperature']['tmax2day'][:-3], 'min_temp': tomorrow_json['weather']['forecast3days'][0]['fcstdaily']['temperature']['tmin2day'][:-3]})
     return result_json_list
 
@@ -333,7 +337,6 @@ def home(region):
                 temp = j['weather']['minutely'][0]['temperature']['tc']
                 rain_list=[]
                 precip=float(Decimal(j['weather']['minutely'][0]['precipitation']['sinceOntime']))
-                print(precip)
                 precip_type=j['weather']['minutely'][0]['precipitation']['sinceOntime']
                 if precip_type == '3':
                     precip = precip * 10
@@ -386,6 +389,110 @@ def hourly(region):
 
 
 #Add gisang-chung
+
+
+@app.route("/toto", defaults={'region': 'Seoul'})
+@app.route("/toto/<region>")
+def toto(region):
+    user = request.cookies.get('SESSIONID')
+    Username = session_moum[user].decode("UTF-8")
+    current_time = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
+    start_time = round_time(current_time, round_to=3*60*60) + datetime.timedelta(hours=6)
+
+    target_time_list = []
+    due_time_list = []
+    bet_on_rain_list = []
+    bet_on_dry_list = []
+    for i in range(8):
+        dt = start_time + datetime.timedelta(hours=3*i)
+        dt_json = datetime_to_json(dt)
+        target_time_list.append(dt_json)
+        due_time_list.append(datetime_to_json(dt - datetime.timedelta(hours=3)))
+        bet_on_rain = [int(p.money) for p in Prediction.query.filter_by(date=dt_json['complete'], weather='rain').all()]
+        bet_on_rain_list.append(sum(bet_on_rain))
+        bet_on_dry = [int(p.money) for p in Prediction.query.filter_by(dt_json['complete'], weather='dry').all()]
+        bet_on_dry_list.append(sum(bet_on_rain))
+
+    already = [prediction.date for prediction in Prediction.query.filter_by(user_name='json').all()]
+
+
+    return render_template('predict.html', region=region, target_time_list=target_time_list, due_time_list=due_time_list, username=Username, already=already, bet_on_rain_list=bet_on_rain_list, bet_on_dry_list=bet_on_dry_list)
+
+
+@app.route("/toto_fast", defaults={'region': 'Seoul'})
+@app.route("/toto_fast/<region>")
+def toto_fast(region):
+    user = request.cookies.get('SESSIONID')
+    Username = session_moum[user].decode("UTF-8")
+    current_time = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
+    start_time = round_time(current_time, round_to=60) + datetime.timedelta(minutes=2)
+
+    target_time_list = []
+    due_time_list = []
+    for i in range(8):
+        dt = start_time + datetime.timedelta(minutes=i)
+        target_time_list.append(datetime_to_json(dt))
+        due_time_list.append(datetime_to_json(dt - datetime.timedelta(minutes=1)))
+
+    already = [prediction.date for prediction in Prediction.query.filter_by(user_name='json').all()]
+
+    return render_template('predict.html', region=region, target_time_list=target_time_list, due_time_list=due_time_list, username=Username, already=already)
+
+
+def round_time(dt=None, round_to=60):
+    """Round a datetime object to any time laps in seconds
+    dt : datetime.datetime object, default now.
+    roundTo : Closest number of seconds to round to, default 1 minute.
+    Author: Thierry Husson 2012 - Use it as you want but don't blame me.
+    """
+    if dt is None:
+        dt = datetime.datetime.now(pytz.timezone('Asia/Seoul'))
+    seconds = (dt.replace(tzinfo=None) - dt.min).seconds
+    rounding = (seconds+round_to/2) // round_to * round_to
+    return dt + datetime.timedelta(0, rounding-seconds, -dt.microsecond)
+
+
+def datetime_to_json(dt):
+    result = {}
+    result['year'] = str(dt.year)[2:]
+    result['month'] = str(dt.month)
+    result['day'] = str(dt.day)
+    result['hour'] = str(dt.hour)
+    result['minute'] = str(dt.minute)
+    result['second'] = str(dt.second)
+    if len(result['month']) == 1:
+        result['month'] = '0' + result['month']
+    if len(result['day']) == 1:
+        result['day'] = '0' + result['day']
+    if len(result['hour']) == 1:
+        result['hour'] = '0' + result['hour']
+    if len(result['minute']) == 1:
+        result['minute'] = '0' + result['minute']
+    result['complete'] = result['year'] + '.' + result['month'] + '.' + result['day'] + '.' + result['hour'] + ':' + result['minute']
+    return result
+
+
+@app.route("/ajax/toto/add", methods=["GET", "POST"])
+def add_toto():
+    if request.method == 'POST':
+        Username = request.json['user_name']
+        date_json = request.json['date']
+        date = date_json['year']+'.'
+        date += date_json['month']+'.'
+        date += date_json['day']+'.'
+        date += date_json['hour']+':'+date_json['minute']
+        predict = Prediction(date=date, weather=request.json['weather'], region=request.json['region'])
+        user = User.query.filter_by(username=Username).first()
+        if user is not None:
+            user.predictions.append(predict)
+            db.session.add(user)
+            db.session.commit()
+            return "Date : %s, Weather : %s, region : %s, Username : %s add Succeed!"%(date, request.json['weather'], request.json['region'], Username)
+        else:
+            return "Username : %s doesn't exist!" % Username
+
+
+# Add gisang-chung
 @app.route("/add_kma")
 def add_kma():
     global request
@@ -432,7 +539,7 @@ def register():
         if User.query.filter_by(username=query0).first() is not None:
             return "User with same username already exists!"
         else:
-            user = User(query0, query1, 1000)
+            user = User(query0, query1, 1000000000)
             db.session.add(user)
             db.session.commit()
             return "User %s register completed"%query0
@@ -508,7 +615,6 @@ def login():
     if request.method == 'GET':
         return render_template("login.html")
     else:
-        print(request.form['username'])
         query0 = request.form['username']
         query1 = request.form['password']
         if User.query.filter_by(username=query0,pw=query1).first() is None:
@@ -526,8 +632,6 @@ def login():
 @app.route("/user_list")
 def user_list():
     all_users = User.query.all()
-    print(User.query.filter_by(username="js").first().total_money)
-
     user_list_str=''
     for i in range(len(all_users)):
         user_list_str+=all_users[i].username+', '+str(all_users[i].total_money)+'\n'
