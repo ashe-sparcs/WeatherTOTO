@@ -25,15 +25,23 @@ weather_check={}
 weather_check['맑음']="wi-day-sunny"
 weather_check['구름조금']="wi-day-cloudy-high"
 weather_check['구름많음']="wi-day-cloudy"
+weather_check['차차 흐려짐']="wi-day-cloudy"
 weather_check['구름많고 비']="wi-day-rain"
+weather_check['비 후 갬']="wi-day-rain"
 weather_check['구름많고 눈']="wi-day-snow"
+weather_check['눈 후 갬']="wi-day-snow"
 weather_check['구름많고 비 또는 눈']="wi-day-rain-mix"
 weather_check['구름많고 비/눈']="wi-day-rain-mix"
+weather_check['눈비 후 갬']="wi-day-rain-mix"
 weather_check['흐림']="wi-cloudy"
 weather_check['흐리고 비']="wi-rain"
+weather_check['흐려져 비']="wi-rain"
 weather_check['흐리고 눈']="wi-snow"
+weather_check['흐려져 눈']="wi-rain"
 weather_check['흐리고 비 또는 눈']="wi-rain-mix"
 weather_check['흐리고 비/눈']="wi-rain-mix"
+weather_check['흐려져 눈비']="wi-rain-mix"
+weather_check['눈비']="wi-rain-mix"
 weather_check['흐리고 낙뢰']="wi-lightning"
 weather_check['뇌우, 비']="wi-thunderstorm"
 weather_check['뇌우, 눈']="wi-storm-showers"
@@ -171,7 +179,6 @@ def parse_week_forecast(city, html):
         weather_list = [content.img['alt'] for content in weather_temp_list[12].contents[1:]]
         temp_list = [content.string for content in weather_temp_list[13].contents[1:]]
         temp_list = [(elem.split(' / ')[0], elem.split(' / ')[1]) for elem in temp_list]
-        print(weather_list)
         print(temp_list)
     elif city == '대구':
         while '\n' in weather_temp_list[23].contents:
@@ -189,10 +196,10 @@ def parse_week_forecast(city, html):
         weather_list = [content.img['alt'] for content in weather_temp_list[27].contents[1:]]
         temp_list = [content.string for content in weather_temp_list[28].contents[1:]]
         temp_list = [(elem.split(' / ')[0], elem.split(' / ')[1]) for elem in temp_list]
+    print(weather_list)
     for i in range(len(weather_list)):
-        if ' 후 갬' in weather_list[i]:
-            weather_list[i].replace(' 후 갬', '')
-        result_json_list.append({'dow': dow_list[i][:3], 'weather': weather_list[i], 'max_temp': temp_list[i][1], 'min_temp': temp_list[i][0]})
+        result_json_list.append({'dow': dow_list[i][:3], 'weather': weather_check[weather_list[i]], 'max_temp': temp_list[i][1], 'min_temp': temp_list[i][0]})
+    print(weather_list)
     # 내일 날씨 추가####################################################
     request_tomorrow = urllib.request.Request('http://apis.skplanetx.com/weather/forecast/3days?version=1&lat='+city_to_geo[city][0]+'&lon='+city_to_geo[city][0])
     request_tomorrow.add_header('appKey', 'be02eb42-18ce-3488-830a-f8334ce8f2a2')
@@ -200,7 +207,7 @@ def parse_week_forecast(city, html):
     print(dow_list_glob[dow_list_glob.index(dow_list[0])-1])
     print(tomorrow_json['weather']['forecast3days'][0]['fcstdaily']['temperature']['tmax2day'])
     print(tomorrow_json['weather']['forecast3days'][0]['fcstdaily']['temperature']['tmin2day'])
-    result_json_list.insert(0, {'dow': dow_list_glob[dow_list_glob.index(dow_list[0])-1][:3], 'max_temp': tomorrow_json['weather']['forecast3days'][0]['fcstdaily']['temperature']['tmax2day'][:-3], 'min_temp': tomorrow_json['weather']['forecast3days'][0]['fcstdaily']['temperature']['tmin2day'][:-3]})
+    result_json_list.insert(0, {'dow': dow_list_glob[dow_list_glob.index(dow_list[0])-1][:3], 'weather': weather_check[tomorrow_json['weather']['forecast3days'][0]['fcst3hour']['sky']['name22hour']], 'max_temp': tomorrow_json['weather']['forecast3days'][0]['fcstdaily']['temperature']['tmax2day'][:-3], 'min_temp': tomorrow_json['weather']['forecast3days'][0]['fcstdaily']['temperature']['tmin2day'][:-3]})
     return result_json_list
 
 
@@ -298,6 +305,7 @@ def register():
             db.session.commit()
             return "User %s register completed"%query0
 
+
 @app.route("/predict", methods=['GET','POST'])
 def predict():
     if request.method == 'GET':
@@ -333,6 +341,7 @@ def predict():
         else:
             return "Username : %s doesn't exist!"%Username
 
+
 @app.route("/predict_search")
 def predict_search():
      return '''Predict_search. Input ex -> 2017-01-23
@@ -340,6 +349,7 @@ def predict_search():
   Date : <input type=text name = date>
   Region : <input type=text name = region>
   <input type=submit value=Search>'''
+
 
 @app.route("/predict_list", methods=['POST','GET'])
 def predict_list():
@@ -363,6 +373,8 @@ def predict_list():
         if query[i].weather=='Clear':
             clear+=query[i].user_name+', '
     return rain+snow+nothing+clear+' On date %s, region %s'%(date,region)
+
+
 @app.route("/login", methods=['GET','POST'])
 def login():
     if request.method == 'GET':

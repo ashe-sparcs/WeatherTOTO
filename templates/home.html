@@ -132,7 +132,7 @@
                         {% for forecast in week_forcast_list %}
                             <div class="mdl-cell mdl-cell--2-col" style="text-align: center">
                                 <p style="line-height: 3em">{{ forecast.dow }}</p>
-                                <p><i class="wi wi-day-cloudy" style="font-size: 2.7em"></i></p>
+                                <p><i class="wi {{ forecast.weather }}" style="font-size: 2.7em"></i></p>
                                 <p style="line-height: 0.2em">{{ forecast.max_temp }}°</p>
                                 <p style="line-height: 0.2em; color: grey">{{ forecast.min_temp }}°</p>
                             </div>
