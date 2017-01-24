@@ -107,9 +107,12 @@ class Prediction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.String(50))
     weather = db.Column(db.String(50))
+    real_weather = db.Column(db.String(50))
     region = db.Column(db.String(50))
     bet_money = db.Column(db.Integer)
+    return_money = db.Column(db.Integer)
     user_name = db.Column(db.String(80), db.ForeignKey('user.username'))
+
 
     def __init__(self, date, weather, region, bet_money):
         self.date = date
@@ -141,7 +144,7 @@ def datetime_to_str(dt):
     return string
 
 
-@cron.interval_schedule(hours=6)
+@cron.interval_schedule(minutes=2)
 def job_function():
     #print(datetime.datetime.utcnow())
     time_str=datetime.datetime.now(pytz.timezone('Asia/Seoul'))
@@ -185,14 +188,17 @@ def job_function():
         except:
             bedang = 1
         for predict in predicts:
+            predict.real_weather = weather_win
+            db.session.commit()
             if predict.weather == weather_win:
                 User.query.filter_by(username=predict.user_name).first().total_money+=predict.bet_money * bedang    #할당된 돈만큼 user에게 더해줌
+                predict.return_money = predict.bet_money * bedang
                 db.session.commit()
 
             #print(predict.bet_money)
     print("Finish Cron")
 
-#cron.add_cron_job(job_function, minute='0-59')
+cron.add_cron_job(job_function, minute='0-59')
 atexit.register(lambda: cron.shutdown(wait=False))
 
 
@@ -264,7 +270,6 @@ def parse_week_forecast(city, html):
 @app.route("/")
 def red():
     return redirect('/home')
-
 
 def api_call(num, city):
     if city=="Seoul":
@@ -368,10 +373,11 @@ def my():
     user = request.cookies.get('SESSIONID')
     Username = session_moum[user].decode("UTF-8")
     user_obj = User.query.filter_by(username=Username).first()
-    prediction_list = Prediction.query.filter_by(user_name=Username).order_by(Prediction.date)
+    prediction_list = list(Prediction.query.filter_by(user_name=Username).order_by(Prediction.date).all())
+    prediction_list.reverse()
     print('prediction list')
     print([p.user_name for p in prediction_list])
-    return render_template('my.html', prediction_list=prediction_list, user_money = user_obj.total_money)
+    return render_template('my.html', prediction_list=prediction_list, user_money = user_obj.total_money, username=Username)
     
 
 @app.route("/hourly", defaults={'region': 'Seoul'})
@@ -574,7 +580,7 @@ def register():
             user = User(query0, query1, 1000000000)
             db.session.add(user)
             db.session.commit()
-            return "User %s register completed"%query0
+            return render_template("login.html")
 
 
 @app.route("/predict", methods=['GET','POST'])

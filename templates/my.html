@@ -111,7 +111,7 @@
                     </button>
                     <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="accbtn">
                         <li class="mdl-menu__item">Your Money: {{user_money}}</li>
-                        <li class="mdl-menu__item"><a href="/my">hello@example.com</a></li>
+                        <li class="mdl-menu__item"><a href="/my">My Bettings</a></li>
                     </ul>
                 </div>
             </header>
@@ -145,9 +145,17 @@
                             <td class="mdl-data-table__cell--non-numeric">{{ prediction.region }}</td>
                             <td class="mdl-data-table__cell--non-numeric">{{ prediction.date }}</td>
                             <td class="mdl-data-table__cell--non-numeric">{{ prediction.weather }}</td>
-                            <td class="mdl-data-table__cell--non-numeric">dry</td>
+                            {% if prediction.real_weather is none %}
+                                <td class="mdl-data-table__cell--non-numeric">-</td>
+                            {% else %}
+                                <td class="mdl-data-table__cell--non-numeric">{{ prediction.real_weather }}</td>
+                            {% endif %}
                             <td>{{ prediction.bet_money }}</td>
-                            <td>0</td>
+                            {% if prediction.return_money is none %}
+                                <td>-</td>
+                            {% else %}
+                                <td>{{ prediction.return_money }}</td>
+                            {% endif %}
                         </tr>
                         {% endfor %}
                     </tbody>
